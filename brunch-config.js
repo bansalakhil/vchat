@@ -21,7 +21,14 @@ exports.config = {
       }
     },
     stylesheets: {
-      joinTo: "css/app.css"
+      joinTo: "css/app.css",
+      order: {
+        before: [
+          "web/static/css/bootstrap.css",
+          "web/static/css/app.css",
+        ]
+      }      
+
     },
     templates: {
       joinTo: "js/app.js"
