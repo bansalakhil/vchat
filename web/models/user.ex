@@ -4,11 +4,15 @@ defmodule Vchat.User do
   # use Comeonin for password encryption 
   import Comeonin.Bcrypt, only: [hashpwsalt: 1]
 
+  before_insert :generate_activation_token
+
   schema "users" do
     field :name, :string
     field :username, :string
     field :email, :string
     field :password_digest, :string
+    field :activation_token, :string
+    field :activated_at, Ecto.DateTime
 
     #virtual fields
     field :password, :string, virtual: true
@@ -34,6 +38,13 @@ defmodule Vchat.User do
     |> validate_length(:password, min: 6)
     |> validate_length(:password_confirmation, min: 6)
     |> hash_password
+  end  
+
+  def changeset_for_activation(model, params \\ :empty) do
+    model
+    |> cast(params, [])
+    |> put_change(:activation_token, nil)
+    |> put_change(:activated_at,  Ecto.DateTime.utc)
   end
 
   def changeset(model, params \\ :empty) do
@@ -52,6 +63,7 @@ defmodule Vchat.User do
   end
 
 
+
   defp hash_password(changeset) do
     if password = get_change(changeset, :password) do
       # if password is changed. Then set password_digest using comeonin
@@ -62,6 +74,11 @@ defmodule Vchat.User do
     else
       changeset
     end
+  end
 
+  defp generate_activation_token(changeset) do
+    length = 32
+    random_string = :crypto.strong_rand_bytes(length) |> Base.url_encode64 |> binary_part(0, length)
+    changeset = put_change(changeset, :activation_token, random_string)
   end
 end

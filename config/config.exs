@@ -11,6 +11,7 @@ config :vchat, Vchat.Endpoint,
   root: Path.dirname(__DIR__),
   secret_key_base: "iRW0ELFHqHdX2bEXtDc/M3ZOIsZaEWVi93uKdjN2YGPuKpHsKlq7uoe1Y9m2eDFo",
   render_errors: [accepts: ~w(html json)],
+  
   pubsub: [name: Vchat.PubSub,
            adapter: Phoenix.PubSub.PG2]
 

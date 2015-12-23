@@ -18,7 +18,9 @@ defmodule Vchat.Router do
 
     get "/", PageController, :index
     
-    resources "/users", UserController
+    resources "/users", UserController 
+    
+    get "users/activate/:t", UserController, :activate
   end
 
   # Other scopes may use custom stacks.
