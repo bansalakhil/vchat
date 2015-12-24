@@ -27,8 +27,14 @@
 
           <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav">
-              <li class="active"><a href="<%= user_path(@conn, :new) %>">Signup </a></li>
-              <li><a href="<%= user_path(@conn, :new) %>">Signin</a></li>
+              <%= if !@conn.assigns[:current_user] do %>
+              <li class="active">
+                <%= link "Signup", to: user_path(@conn, :new)%>
+              </li>
+              <li>
+               <%= link("Signin", to: session_path(@conn, :new)) %>
+              </li>
+              <% end %>              
               <li class="dropdown">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Dropdown <span class="caret"></span></a>
                 <ul class="dropdown-menu" role="menu">
@@ -49,7 +55,12 @@
               <button type="submit" class="btn btn-default">Submit</button>
             </form>
             <ul class="nav navbar-nav navbar-right">
-              <li><a href="#">Logout</a></li>
+              <li>
+                <%= if user = @conn.assigns[:current_user] do %>
+                <span style = "color:white; font-weight: bold;">Welcome <%= user.name%></span>
+                <%= link "Logout", to: session_path(@conn, :delete, user.id ), method: :delete%>
+                <% end %>
+              </li>
             </ul>
           </div>
         </div>

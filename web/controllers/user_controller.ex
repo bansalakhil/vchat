@@ -49,6 +49,13 @@ defmodule Vchat.UserController do
     end      
   end
 
+  def find_by_id(user_id) do
+    case user_id do
+      nil -> nil
+      _ -> Repo.get(User, user_id)
+    end
+  end  
+
   # def show(conn, %{"id" => id}) do
   #   user = Repo.get!(User, id)
   #   render(conn, "show.html", user: user)
