@@ -23,7 +23,7 @@ defmodule Vchat.UserController do
         Vchat.UserMailer.send_account_verification_email(conn, user)
         conn
         |> put_flash(:info, "User created successfully, please verify your email.")
-        |> redirect(to: page_path(conn, :index))
+        |> redirect(to: chat_path(conn, :index))
       {:error, changeset} ->
         render(conn, "new.html", changeset: changeset)
     end
@@ -40,12 +40,12 @@ defmodule Vchat.UserController do
       {:ok, user} ->
         conn
         |> put_flash(:info, "Your account activated successfully.")
-        |> redirect(to: page_path(conn, :index))
+        |> redirect(to: chat_path(conn, :index))
       {:error, changeset} ->
         raise changeset.errors
         conn
         |> put_flash(:error, "Can not activate your account, may be invalid URL")
-        |> redirect(to: page_path(conn, :index))
+        |> redirect(to: chat_path(conn, :index))
     end      
   end
 

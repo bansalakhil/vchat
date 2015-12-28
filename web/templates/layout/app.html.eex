@@ -9,6 +9,7 @@
 
     <title>VChat Phoenix!</title>
     <link rel="stylesheet" href="<%= static_path(@conn, "/css/app.css") %>">
+    <script>window.userToken = "<%= assigns[:user_token] %>";</script>
   </head>
 
   <body>

@@ -54,9 +54,27 @@ let socket = new Socket("/socket", {params: {token: window.userToken}})
 socket.connect()
 
 // Now that you are connected, you can join channels with a topic:
-let channel = socket.channel("topic:subtopic", {})
+let channel = socket.channel("chat:lobby", {})
+let chatLobby = $("div#chat-lobby-container div#chat-lobby-mbox")
+
 channel.join()
   .receive("ok", resp => { console.log("Joined successfully", resp) })
   .receive("error", resp => { console.log("Unable to join", resp) })
+
+
+
+
+
+
+channel.on("user:entered_in_lobby", payload => {
+  chatLobby.append(`<div><span class = "grey-out">[${new Date().toLocaleString()}]</span> ${payload.user} joined</div>`)
+})
+
+
+
+
+
+
+
 
 export default socket

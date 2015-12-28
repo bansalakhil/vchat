@@ -12,6 +12,10 @@ defmodule Vchat.Router do
 
   pipeline :auth do
     plug :authenticate
+  end  
+
+  pipeline :anon do
+    plug :anonymous
   end
 
   pipeline :api do
@@ -19,12 +23,10 @@ defmodule Vchat.Router do
   end
 
   scope "/", Vchat do
-    pipe_through :browser # Use the default browser stack
+    pipe_through [:browser, :anon] # Use the default browser stack
 
-    # get "/", PageController, :index
-    
     resources "/users", UserController, only: [:index, :new, :create]
-    resources "/sessions", SessionController, only: [:new, :create, :delete]
+    resources "/sessions", SessionController, only: [:new, :create]
     
     get "users/activate/:t", UserController, :activate
   end
@@ -32,7 +34,9 @@ defmodule Vchat.Router do
   scope "/", Vchat do
     pipe_through [:browser, :auth]  # Use the default browser stack
 
-    get "/", PageController, :index
+    resources "/sessions", SessionController, only: [:delete]
+    resources "/chat", ChatController, only: [:index]
+    get "/", ChatController, :index
     
   end
 
@@ -51,6 +55,8 @@ defmodule Vchat.Router do
     current_user = Vchat.UserController.find_by_id(current_user_id)
     if current_user do
       assign(conn, :current_user, current_user)
+      token = Phoenix.Token.sign(conn, "user socket", current_user.id)
+      assign(conn, :user_token, token)      
     else
       conn
         |> put_flash(:error, 'You need to be signed in to view this page')
@@ -58,6 +64,19 @@ defmodule Vchat.Router do
         |> halt()
     end    
   end
+
+
+  defp anonymous(conn, _) do
+    current_user_id = get_session(conn, :current_user)
+    if current_user_id do
+      conn
+        |> put_flash(:error, 'You are already logged in.')
+        |> redirect(to: "/")
+        |> halt()
+    else
+      conn
+    end    
+  end  
 
   # Other scopes may use custom stacks.
   # scope "/api", Vchat do

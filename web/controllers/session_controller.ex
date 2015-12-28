@@ -26,19 +26,23 @@ defmodule Vchat.SessionController do
     conn
       |> delete_session(:current_user)
       |> put_flash(:info, "Signed out successfully!")
-      |> redirect(to: page_path(conn, :index))
+      |> redirect(to: session_path(conn, :new))
   end
 
-  defp sign_in(user, _password, conn) when is_nil(user) do
+  defp sign_in(user, _password, conn) when is_nil(user)  do
     failed_login(conn)
   end
 
   defp sign_in(user, password, conn) do
+    if !User.activated?(user) do
+      user_not_activated(conn)
+    end
+
     if checkpw(password, user.password_digest) do
       conn
         |> put_session(:current_user, user.id)
         |> put_flash(:info, "Welcome #{user.name}")
-        |> redirect(to: page_path(conn, :index))
+        |> redirect(to: chat_path(conn, :index))
     else
         failed_login(conn)
     end
@@ -52,5 +56,12 @@ defmodule Vchat.SessionController do
       |> halt()
   end
 
+  defp user_not_activated(conn) do
+    conn
+      |> put_session(:current_user, nil)
+      |> put_flash(:error, "User Account Not Activated")
+      |> redirect(to: session_path(conn, :new))
+      |> halt()
+  end
 
 end

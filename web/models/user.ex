@@ -53,6 +53,10 @@ defmodule Vchat.User do
     |> common_validations
   end  
 
+  def activated?(user) do
+    is_nil(user.activation_token) && !is_nil(user.activated_at)
+  end
+
   defp common_validations(changeset) do
     changeset
     |> validate_length(:username, min: 2)
