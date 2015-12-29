@@ -7,7 +7,7 @@
     <div class="panel-body" data-behaviour = 'chat-users'>
       <ul class="list-group">
         <li class="list-group-item">
-          <span class="badge">14</span>
+          <span class="badge" data-unread-notification-for = "chat-lobby"></span>
           <a href = "javascript:void(0);"  data-username = 'chat-lobby' data-behaviour = 'chat-user' data-chat-type = "group">Lobby</a>
         </li>
 
@@ -18,7 +18,7 @@
         <% hidden = "hidden"%>
         <% end %>        
         <li class="list-group-item <%= hidden %>" >
-          <span class="badge">14</span>
+          <span class="badge" data-unread-notification-for = "<%= user.username %>"></span>
           <a href = "javascript:void(0);" data-username="<%= user.username %>" data-name="<%= user.name %>" data-behaviour = 'chat-user' data-chat-type = "individual"><%= user.name %></a>
         </li>
         <% end %>

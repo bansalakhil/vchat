@@ -67,6 +67,7 @@ channel.join()
 
 
 channel.on("user:entered_in_lobby", payload => {
+  // get the name of the user who joined the lobby
   var name = $("[data-behaviour=chat-users").find("[data-username="+payload.user+"]").attr("data-name")
   var $joinedMsg = $("<div>");
   var currentTime = new Date().toLocaleString();
@@ -81,9 +82,12 @@ channel.on("user:entered_in_lobby", payload => {
 
 
 channel.on("chat:new_msg", payload => {
-  console.log("[data-username="+payload.from+"]")
+  // console.log("[data-username="+payload.from+"]")
+  // 
+  // message sender name from dom using username
   var fromName = $("[data-behaviour=chat-users").find("[data-username="+payload.from+"]").attr("data-name")
   
+  // prepare the message content to display
   var $msgContainer = $("<div>", {class: "msg-container"});
   var currentTime = new Date().toLocaleString();
   var msg = payload.msg;
@@ -96,21 +100,34 @@ channel.on("chat:new_msg", payload => {
 
   if(payload.type == 'group'){
       // its a group message
-      var $msgFor = $("[data-behaviour=chat-mbox] #"+payload.to+"-mbox")
+      var msgFor = payload.to;
     } 
     else{
       // its an individual chat
       if (window.current_username == payload.from){
         // message sent by me
-        var $msgFor = $("[data-behaviour=chat-mbox] #"+payload.to+"-mbox");
+        var msgFor = payload.to;
       }else{
         // message received by me
-        var $msgFor = $("[data-behaviour=chat-mbox] #"+payload.from+"-mbox");
+        var msgFor = payload.from;
       }
   }
-    
+  console.log("Message received for chatgroup: "+msgFor);
+
+  // append in the desigred chat group
+  var $msgFor = $("[data-behaviour=chat-mbox] #"+msgFor+"-mbox")
   $msgFor.append($msgContainer);
+  $msgContainer[0].scrollIntoView();
   
+
+  // display notification if not in focused
+  
+  if(window.selected_chatgroup.attr("data-username") != msgFor){
+    var notificationBox = $("[data-unread-notification-for="+msgFor+"]")
+    var count = Number(notificationBox.text());
+    notificationBox.text(++count);
+  }
+
 })
 
 
@@ -120,7 +137,7 @@ var $msgBox = $("[data-behaviour=msg-form] textarea[data-behaviour=msg-input]")
 $msgBox.keydown(function(e){
     if (e.keyCode == 13 && !e.shiftKey)
     {
-        channel.push("chat:new_msg", {msg: $msgBox.val(), to: window.selected.attr("data-username"), type: window.selected.attr("data-chat-type")})
+        channel.push("chat:new_msg", {msg: $msgBox.val(), to: window.selected_chatgroup.attr("data-username"), type: window.selected_chatgroup.attr("data-chat-type")})
         $msgBox.val("")
         e.preventDefault();
     }

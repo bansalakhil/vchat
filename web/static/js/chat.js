@@ -12,7 +12,7 @@ var Chat = {
       // hide all mbox and show lobby mbox  
       $("div[data-behaviour=chat-mbox] div[data-behaviour=mbox-container]").hide();
       $("div[data-behaviour=chat-mbox] div#chat-lobby-container").show(); 
-      window.selected = $("a[data-username=chat-lobby]");
+      window.selected_chatgroup = $("a[data-username=chat-lobby]");
 
 
       // on click display related mbox  
@@ -24,9 +24,12 @@ var Chat = {
         console.log('displayiing '+username+'-container');
         $("div[data-behaviour=chat-mbox] div#"+username+"-container").show();
 
-        window.selected = $this;
+        window.selected_chatgroup = $this;
 
-
+        // reset notification badge
+        var notificationBox = $("[data-unread-notification-for="+username+"]")
+        // var count = Number(notificationBox.text());
+        notificationBox.text("");
 
       })
     });    
