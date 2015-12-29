@@ -35,3 +35,7 @@ div.msg{
 .bold{
   font-weight: bold;
 }
+
+#msgInput{
+  width: 100%
+}

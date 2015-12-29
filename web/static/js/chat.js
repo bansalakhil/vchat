@@ -35,6 +35,59 @@ var Chat = {
     });    
   },
 
+  displayMessage: function(payload){
+    // console.log(payload)
+    // console.log("[data-username="+payload.from+"]")
+    // 
+    // message sender name from dom using username
+    var fromName = $("[data-behaviour=chat-users").find("[data-username="+payload.from+"]").attr("data-name")
+    
+    // prepare the message content to display
+    var $msgContainer = $("<div>", {class: "msg-container"});
+    var currentTime = new Date().toLocaleString();
+    var msg = payload.msg;
+    var $timestampContainer = $("<span>", {class: "grey-out small"}).html("&nbsp;"+currentTime);
+    var $from = $("<span>", {class: 'bold'}).append(fromName);
+    var $username = $("<div>").append($from).append($timestampContainer)
+    
+    $msgContainer.append($username)
+    $msgContainer.append($("<div>", {class: "msg"}).html(msg));
+
+    if(payload.type == 'group'){
+        // its a group message
+        var msgFor = payload.to;
+      } 
+      else{
+        // its an individual chat
+        if (window.current_username == payload.from){
+          // message sent by me
+          var msgFor = payload.to;
+        }else{
+          // message received by me
+          var msgFor = payload.from;
+        }
+    }
+    console.log("Message received for chatgroup: "+msgFor);
+
+    // append in the desigred chat group
+    var $msgFor = $("[data-behaviour=chat-mbox] #"+msgFor+"-mbox")
+    $msgFor.append($msgContainer);
+    $msgContainer[0].scrollIntoView();
+    
+
+    // display notification if not in focused
+    
+    if(window.selected_chatgroup.attr("data-username") != msgFor){
+      var notificationBox = $("[data-unread-notification-for="+msgFor+"]")
+      var count = Number(notificationBox.text());
+      notificationBox.text(++count);
+    }
+  },
+
+
+  userStatus: function(payload){
+    console.log(payload)
+  }
 
 };
 
