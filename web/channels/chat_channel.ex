@@ -15,14 +15,13 @@ defmodule Vchat.ChatChannel do
     {:error, %{reason: "unauthorized"}}
   end
 
-  def handle_in("new_msg", %{"body" => body}, socket) do
-    body = body <> "          hello"
-    broadcast! socket, "new_msg", %{body: body}
+  def handle_in("chat:new_msg", %{"msg" => msg, "type" => type, "to" => to}, socket) do
+    broadcast! socket, "chat:new_msg", %{msg: msg, from: socket.assigns[:current_user].username, type: type, to: to}
     {:noreply, socket}
   end
 
-  def handle_out("new_msg", payload, socket) do
-    push socket, "new_msg", payload
+  def handle_out("chat:new_msg", payload, socket) do
+    push socket, "chat:new_msg", payload
     {:noreply, socket}
   end
 

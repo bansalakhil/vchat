@@ -4,18 +4,31 @@
     <div class="panel-heading">
       <h3 class="panel-title">Users</h3>
     </div>
-    <div class="panel-body">
-      <%= for user <- @users do %>
-      <div>
-        <a href = "javascript:void(0);" data-username="<%= user.username %>" ><%= user.name %></a>
-      </div>
-      <% end %>
+    <div class="panel-body" data-behaviour = 'chat-users'>
+      <ul class="list-group">
+        <li class="list-group-item">
+          <span class="badge">14</span>
+          <a href = "javascript:void(0);"  data-username = 'chat-lobby' data-behaviour = 'chat-user' data-chat-type = "group">Lobby</a>
+        </li>
+
+        <%= for user <- @users do %>
+        <% cuid = @conn.assigns[:current_user].id %>
+        <% uid = user.id %>
+        <%= if uid == cuid do %>
+        <% hidden = "hidden"%>
+        <% end %>        
+        <li class="list-group-item <%= hidden %>" >
+          <span class="badge">14</span>
+          <a href = "javascript:void(0);" data-username="<%= user.username %>" data-name="<%= user.name %>" data-behaviour = 'chat-user' data-chat-type = "individual"><%= user.name %></a>
+        </li>
+        <% end %>
+      </ul>    
     </div>
   </div>
 </div>
 
-<div class = "col-lg-10 " >
-  <div class="panel panel-primary" id = "chat-lobby-container">
+<div class = "col-lg-10 " data-behaviour = "chat-mbox">
+  <div class="panel panel-primary" id = "chat-lobby-container" data-behaviour = 'mbox-container' data-mbox = 'lobby'>
     <div class="panel-heading">
       <h3 class="panel-title">Lobby</h3>
     </div>
@@ -23,5 +36,24 @@
 
     </div>
   </div>
+
+
+  <%= for user <- @users do %>
+  <div class="panel panel-primary" id = "<%= user.username%>-container" data-behaviour = 'mbox-container' data-mbox = "<%= user.username%>">
+    <div class="panel-heading">
+      <h3 class="panel-title"><%= user.name%></h3>
+    </div>
+    <div class="panel-body chat-box" id = "<%= user.username%>-mbox">
+
+    </div>
+  </div>  
+  <% end %>
+
 </div>
 
+<div class = "col-lg-10 col-lg-offset-2"  data-behaviour = "msg-form">
+  <div class="well">
+    <textarea data-behaviour = "msg-input" rows= "2" cols = "80">
+    </textarea>
+  </div>
+</div>

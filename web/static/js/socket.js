@@ -67,13 +67,64 @@ channel.join()
 
 
 channel.on("user:entered_in_lobby", payload => {
-  chatLobby.append(`<div><span class = "grey-out">[${new Date().toLocaleString()}]</span> ${payload.user} joined</div>`)
+  var name = $("[data-behaviour=chat-users").find("[data-username="+payload.user+"]").attr("data-name")
+  var $joinedMsg = $("<div>");
+  var currentTime = new Date().toLocaleString();
+  var msg = name + " joined " 
+  var $timestampContainer = $("<span>", {class: "grey-out small"}).text(currentTime);
+  $joinedMsg.append(msg)
+  $joinedMsg.append($timestampContainer);
+  chatLobby.append($joinedMsg);
+
+})
+
+
+
+channel.on("chat:new_msg", payload => {
+  console.log("[data-username="+payload.from+"]")
+  var fromName = $("[data-behaviour=chat-users").find("[data-username="+payload.from+"]").attr("data-name")
+  
+  var $msgContainer = $("<div>", {class: "msg-container"});
+  var currentTime = new Date().toLocaleString();
+  var msg = payload.msg;
+  var $timestampContainer = $("<span>", {class: "grey-out small"}).html("&nbsp;"+currentTime);
+  var $from = $("<span>", {class: 'bold'}).append(fromName);
+  var $username = $("<div>").append($from).append($timestampContainer)
+  
+  $msgContainer.append($username)
+  $msgContainer.append($("<div>", {class: "msg"}).html(msg));
+
+  if(payload.type == 'group'){
+      // its a group message
+      var $msgFor = $("[data-behaviour=chat-mbox] #"+payload.to+"-mbox")
+    } 
+    else{
+      // its an individual chat
+      if (window.current_username == payload.from){
+        // message sent by me
+        var $msgFor = $("[data-behaviour=chat-mbox] #"+payload.to+"-mbox");
+      }else{
+        // message received by me
+        var $msgFor = $("[data-behaviour=chat-mbox] #"+payload.from+"-mbox");
+      }
+  }
+    
+  $msgFor.append($msgContainer);
+  
 })
 
 
 
 
-
+var $msgBox = $("[data-behaviour=msg-form] textarea[data-behaviour=msg-input]")
+$msgBox.keydown(function(e){
+    if (e.keyCode == 13 && !e.shiftKey)
+    {
+        channel.push("chat:new_msg", {msg: $msgBox.val(), to: window.selected.attr("data-username"), type: window.selected.attr("data-chat-type")})
+        $msgBox.val("")
+        e.preventDefault();
+    }
+});
 
 
 

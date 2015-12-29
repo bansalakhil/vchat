@@ -7,7 +7,8 @@ defmodule Vchat.ChatController do
 
   def index(conn, _params) do
     current_user = conn.assigns[:current_user]
-    users = Repo.all(from u in User, where: u.id != ^current_user.id)
+    # users = Repo.all(from u in User, where: u.id != ^current_user.id)
+    users = Repo.all(User)
 
     render(conn, "index.html", users: users)
   end

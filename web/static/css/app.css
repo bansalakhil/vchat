@@ -22,3 +22,16 @@ div.chat-box{
 .grey-out{
   color: #ccc;
 }
+
+div.msg-container{
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+div.msg{
+  margin-left: 20px;
+}
+
+.bold{
+  font-weight: bold;
+}
