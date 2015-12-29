@@ -1,6 +1,8 @@
 defmodule Vchat.ChatChannel do
   use Phoenix.Channel
-
+  
+  intercept ["chat:new_msg"]
+  
   def join("chat:lobby", message, socket) do
     send(self, {:after_join, message})
     {:ok, socket}
@@ -21,7 +23,15 @@ defmodule Vchat.ChatChannel do
   end
 
   def handle_out("chat:new_msg", payload, socket) do
-    push socket, "chat:new_msg", payload
+    if (payload.type == "group") || (socket.assigns[:current_user].username == payload.to) || (socket.assigns[:current_user].username == payload.from) do
+      push socket, "chat:new_msg", payload
+    # else
+      # if socket.assigns[:user].username == payload.to || socket.assigns[:user].username == payload do
+        
+      # end
+    end
+
+      # push socket, "chat:new_msg", Map.merge(payload, %{name: "akhil"})
     {:noreply, socket}
   end
 
