@@ -1,26 +1,26 @@
 defmodule Vchat.ChatChannel do
   use Phoenix.Channel
+  require Logger
+  
   import Ecto.Query
-
+  
   intercept ["chat:new_msg"]
   
   def join("chat:lobby", message, socket) do
-    :timer.send_interval(300000, :ping)
+    :timer.send_interval(60000, :ping)
     send(self, {:after_join, message})
     {:ok, socket}
   end
-  
+    
+ 
   def handle_info({:after_join, msg}, socket) do
-    broadcast! socket, "user:entered_in_lobby", %{user: socket.assigns[:current_user].username}
+    record_last_activity(socket)
+    broadcast! socket, "user:entered_in_lobby", %{inactive_users: get_inactive_users, user: socket.assigns[:current_user].username}
     {:noreply, socket}
   end
 
   def handle_info(:ping, socket) do
-# from u in User,
-#   where: u.reset_password_sent_at > datetime_add(^Ecto.DateTime.utc, -5, "minute")  
-    users = Vchat.Repo.all(from u in Vchat.User, where: u.last_activity_at < datetime_add(^Ecto.DateTime.utc, -15, "second") or is_nil(u.last_activity_at)  )
-    users = Enum.map(users, &(&1.username))
-    push socket, "chat:user_status", %{inactive_users: users, body: "ping"}
+    push socket, "chat:user_status", %{inactive_users: get_inactive_users, body: "ping"}
     {:noreply, socket}
   end
 
@@ -29,6 +29,7 @@ defmodule Vchat.ChatChannel do
   end
 
   def handle_in("chat:new_msg", %{"msg" => msg, "type" => type, "to" => to}, socket) do
+    record_last_activity(socket)
     broadcast! socket, "chat:new_msg", %{msg: msg, from: socket.assigns[:current_user].username, type: type, to: to}
     {:noreply, socket}
   end  
@@ -37,9 +38,7 @@ defmodule Vchat.ChatChannel do
     # broadcast! socket, "chat:new_msg", %{msg: msg, from: socket.assigns[:current_user].username, type: type, to: to}
     # Vchat.UserController.record_last_activity(socket.assigns[:current_user])
 
-# from u in User,
-#   where: u.reset_password_sent_at > datetime_add(^Ecto.DateTime.utc, -5, "minute")
-    Vchat.Repo.update(Vchat.User.record_last_activity(socket.assigns[:current_user]))
+    record_last_activity(socket)
     {:noreply, socket}
   end
 
@@ -52,5 +51,24 @@ defmodule Vchat.ChatChannel do
     {:noreply, socket}
   end
 
+  def terminate(reason, socket) do
+    mark_offline(socket)
+    broadcast! socket, "chat:user_offline", %{username: socket.assigns[:current_user].username}
+    Logger.debug"> leave #{inspect reason}"
+    :ok
+  end
+
+  defp record_last_activity(socket) do
+    Vchat.Repo.update(Vchat.User.record_last_activity(socket.assigns[:current_user]))
+  end
+
+  defp mark_offline(socket) do
+    Vchat.Repo.update(Vchat.User.mark_offline(socket.assigns[:current_user]))
+  end
+
+  defp get_inactive_users do
+    users = Vchat.Repo.all(from u in Vchat.User, where: u.online == false or u.last_activity_at < datetime_add(^Ecto.DateTime.utc, -60, "second") or is_nil(u.last_activity_at)  )
+    Enum.map(users, &(&1.username))
+  end
 
 end

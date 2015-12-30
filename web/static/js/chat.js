@@ -44,17 +44,15 @@ var Chat = {
   },
 
   getNotificationBoxFor: function(username){
-    console.log(Chat.getUser(username).find("[data-behaviour=notification]"))
+    // console.log(Chat.getUser(username).find("[data-behaviour=notification]"))
     return Chat.getUser(username).find("[data-behaviour=notification]")
   },
 
   resetNotificationFor: function(username){
     var notificationBox = Chat.getUser(username).find("[data-behaviour=notification]");
-    console.log(notificationBox)
+    // console.log(notificationBox)
     notificationBox.text("");
   },
-
-
 
 
   run: function() {
@@ -125,10 +123,28 @@ var Chat = {
     
   },
 
+  setUserActive: function(username){
+    Chat.getUser(username).addClass("online").removeClass("offline");
+  },
+
+  setUserInactive: function(username){
+    console.log(username + " offline")
+    Chat.getUser(username).addClass("offline").removeClass("online");
+  },
 
   setInactiveUserStatus: function(payload){
-    console.log(payload)
-  }
+    // console.log(payload)
+    var users = Chat.getUsers
+    users.addClass("online").removeClass("offline");
+    
+    var offline_users  = users.filter(function(){
+      return payload.includes($(this).attr("data-username"))
+    });
+    
+    offline_users.addClass("offline").removeClass("online")
+  },
+
+
 
 };
 

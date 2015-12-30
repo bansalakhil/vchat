@@ -17,7 +17,7 @@
         <%= if uid == cuid do %>
         <% hidden = "hidden"%>
         <% end %>        
-        <li class="list-group-item <%= hidden %>" data-username="<%= user.username %>" data-name="<%= user.name %>" data-behaviour = 'chat-user' data-chat-type = "individual" >
+        <li class="list-group-item offline <%= hidden %>" data-username="<%= user.username %>" data-name="<%= user.name %>" data-behaviour = 'chat-user' data-chat-type = "individual" >
           <span class="badge" data-behaviour = "notification" ></span>
           <a href = "javascript:void(0);" ><%= user.name %></a>
         </li>

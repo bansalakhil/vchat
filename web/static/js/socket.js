@@ -67,8 +67,6 @@ channel.join()
 
 
 
-
-
 channel.on("user:entered_in_lobby", payload => {
   // get the name of the user who joined the lobby
   var name = Chat.getUserFullName(payload.user);
@@ -78,8 +76,11 @@ channel.on("user:entered_in_lobby", payload => {
   var $timestampContainer = $("<span>", {class: "grey-out small"}).text(currentTime);
   $joinedMsg.append(msg)
   $joinedMsg.append($timestampContainer);
-  console.log(chatLobby)
+  // console.log(chatLobby)
   chatLobby.append($joinedMsg);
+
+  Chat.setUserActive(payload.user);
+  Chat.setInactiveUserStatus(payload.inactive_users);
 
 })
 
@@ -91,6 +92,12 @@ channel.on("chat:new_msg", payload => {
 
 channel.on("chat:user_status", payload => {
   Chat.setInactiveUserStatus(payload.inactive_users);
+  channel.push("chat:record_last_activity", {msg: "..."})
+  
+})
+
+channel.on("chat:user_offline", payload => {
+  Chat.setUserInactive(payload.username);
   channel.push("chat:record_last_activity", {msg: "..."})
   
 })

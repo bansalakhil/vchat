@@ -14,6 +14,7 @@ defmodule Vchat.User do
     field :activation_token, :string
     field :activated_at, Ecto.DateTime
     field :last_activity_at, Ecto.DateTime
+    field :online, :boolean, default: false
 
     #virtual fields
     field :password, :string, virtual: true
@@ -62,6 +63,14 @@ defmodule Vchat.User do
     model
         |> cast(%{}, [])
         |> put_change(:last_activity_at, Ecto.DateTime.utc)
+        |> force_change(:online, true)
+  end
+
+  def mark_offline(model) do
+    model
+        |> cast(%{}, [])
+        |> put_change(:last_activity_at, Ecto.DateTime.utc)
+        |> force_change(:online, false)
   end
 
   defp common_validations(changeset) do
