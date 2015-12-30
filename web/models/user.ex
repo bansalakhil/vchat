@@ -1,6 +1,6 @@
 defmodule Vchat.User do
   use Vchat.Web, :model
-
+  
   # use Comeonin for password encryption 
   import Comeonin.Bcrypt, only: [hashpwsalt: 1]
 
@@ -13,6 +13,7 @@ defmodule Vchat.User do
     field :password_digest, :string
     field :activation_token, :string
     field :activated_at, Ecto.DateTime
+    field :last_activity_at, Ecto.DateTime
 
     #virtual fields
     field :password, :string, virtual: true
@@ -57,9 +58,16 @@ defmodule Vchat.User do
     is_nil(user.activation_token) && !is_nil(user.activated_at)
   end
 
+  def record_last_activity(model) do
+    model
+        |> cast(%{}, [])
+        |> put_change(:last_activity_at, Ecto.DateTime.utc)
+  end
+
   defp common_validations(changeset) do
     changeset
     |> validate_length(:username, min: 2)
+    |> validate_format(:username, ~r(\A[a-z0-9A-Z]+\Z), message: "can be alphanumeric only")
     |> validate_length(:name, min: 2)
     |> validate_format(:email, ~r/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$/)
     |> unique_constraint(:email)

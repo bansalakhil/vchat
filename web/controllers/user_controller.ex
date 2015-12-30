@@ -49,6 +49,12 @@ defmodule Vchat.UserController do
     end      
   end
 
+  # def record_last_activity(user) do
+  #   user = Repo.get_by!(User, id: user.id)
+  #   changeset = User.record_last_activity(user)
+  #   Repo.update(changeset)
+  # end
+
   def find_by_id(user_id) do
     case user_id do
       nil -> nil

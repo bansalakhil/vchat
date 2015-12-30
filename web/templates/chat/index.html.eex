@@ -6,9 +6,9 @@
     </div>
     <div class="panel-body" data-behaviour = 'chat-users'>
       <ul class="list-group">
-        <li class="list-group-item">
-          <span class="badge" data-unread-notification-for = "chat-lobby"></span>
-          <a href = "javascript:void(0);"  data-username = 'chat-lobby' data-behaviour = 'chat-user' data-chat-type = "group">Lobby</a>
+        <li class="list-group-item" data-username = 'chat-lobby' data-behaviour = 'chat-user' data-chat-type = "group">
+          <span class="badge" data-behaviour = "notification" ></span>
+          <a href = "javascript:void(0);"  >Lobby</a>
         </li>
 
         <%= for user <- @users do %>
@@ -17,9 +17,9 @@
         <%= if uid == cuid do %>
         <% hidden = "hidden"%>
         <% end %>        
-        <li class="list-group-item <%= hidden %>" >
-          <span class="badge" data-unread-notification-for = "<%= user.username %>"></span>
-          <a href = "javascript:void(0);" data-username="<%= user.username %>" data-name="<%= user.name %>" data-behaviour = 'chat-user' data-chat-type = "individual"><%= user.name %></a>
+        <li class="list-group-item <%= hidden %>" data-username="<%= user.username %>" data-name="<%= user.name %>" data-behaviour = 'chat-user' data-chat-type = "individual" >
+          <span class="badge" data-behaviour = "notification" ></span>
+          <a href = "javascript:void(0);" ><%= user.name %></a>
         </li>
         <% end %>
       </ul>    
@@ -28,11 +28,11 @@
 </div>
 
 <div class = "col-lg-10 " data-behaviour = "chat-mbox">
-  <div class="panel panel-primary" id = "chat-lobby-container" data-behaviour = 'mbox-container' data-mbox = 'lobby'>
+  <div class="panel panel-primary" id = "chat-lobby-container" data-behaviour = 'mbox-container' data-mbox = 'chat-lobby'>
     <div class="panel-heading">
       <h3 class="panel-title">Lobby</h3>
     </div>
-    <div class="panel-body chat-box" id = "chat-lobby-mbox">
+    <div class="panel-body chat-box" data-behaviour = "mbox">
 
     </div>
   </div>
@@ -43,7 +43,7 @@
     <div class="panel-heading">
       <h3 class="panel-title"><%= user.name%></h3>
     </div>
-    <div class="panel-body chat-box" id = "<%= user.username%>-mbox">
+    <div class="panel-body chat-box" data-behaviour = "mbox">
 
     </div>
   </div>  

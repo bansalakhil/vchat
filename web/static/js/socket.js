@@ -51,11 +51,14 @@ let socket = new Socket("/socket", {params: {token: window.userToken}})
 // Finally, pass the token on connect as below. Or remove it
 // from connect if you don't care about authentication.
 
-socket.connect()
+if(window.userToken){
+  socket.connect()
+}
 
 // Now that you are connected, you can join channels with a topic:
 let channel = socket.channel("chat:lobby", {})
-let chatLobby = $("div#chat-lobby-container div#chat-lobby-mbox")
+let chatLobby = Chat.getLobbyMbox;
+
 
 channel.join()
   .receive("ok", resp => { console.log("Joined successfully", resp) })
@@ -68,13 +71,14 @@ channel.join()
 
 channel.on("user:entered_in_lobby", payload => {
   // get the name of the user who joined the lobby
-  var name = $("[data-behaviour=chat-users").find("[data-username="+payload.user+"]").attr("data-name")
+  var name = Chat.getUserFullName(payload.user);
   var $joinedMsg = $("<div>");
   var currentTime = new Date().toLocaleString();
   var msg = name + " joined " 
   var $timestampContainer = $("<span>", {class: "grey-out small"}).text(currentTime);
   $joinedMsg.append(msg)
   $joinedMsg.append($timestampContainer);
+  console.log(chatLobby)
   chatLobby.append($joinedMsg);
 
 })
@@ -86,12 +90,14 @@ channel.on("chat:new_msg", payload => {
 })
 
 channel.on("chat:user_status", payload => {
-  Chat.userStatus(payload);
+  Chat.setInactiveUserStatus(payload.inactive_users);
+  channel.push("chat:record_last_activity", {msg: "..."})
+  
 })
 
 
 
-var $msgBox = $("[data-behaviour=msg-form] textarea[data-behaviour=msg-input]")
+var $msgBox = Chat.getMsgBox;
 $msgBox.keydown(function(e){
     if (e.keyCode == 13 && !e.shiftKey)
     {
