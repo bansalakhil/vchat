@@ -16,8 +16,8 @@ var Chat = {
     return Chat.getAllMboxContainer.filter("[data-mbox="+name+"]")
   },
 
-  pushMsgToMboxContainer: function(username, msg){
-    var container = Chat.getMboxContainer(username)
+  pushMsgToMboxContainer: function(username, container, msg){
+    // var container = Chat.getMboxContainer(username)
     container.find("[data-behaviour=mbox]").append(msg)
     // msg[0].scrollIntoView();
 
@@ -84,21 +84,6 @@ var Chat = {
   },
 
   displayMessage: function(payload){
-    // console.log(payload)
-    // console.log("[data-username="+payload.from+"]")
-    // 
-    // message sender name from dom using username
-    var fromName = Chat.getUserFullName(payload.from)
-    // prepare the message content to display
-    var currentTime = new Date().toLocaleString();
-    var msg = payload.msg;
-    var $timestampContainer = $("<span>", {class: "grey-out small"}).html("&nbsp;"+currentTime);
-    var $from = $("<span>", {class: 'bold'}).append(fromName);
-    var $username = $("<div>").append($from).append($timestampContainer)
-    
-    var $msgContainer = $("<div>", {class: "msg-container"});
-    $msgContainer.append($username)
-    $msgContainer.append($("<div>", {class: "msg"}).html(msg));
 
     if(payload.type == 'group'){
         // its a group message
@@ -114,11 +99,33 @@ var Chat = {
           var msgFor = payload.from;
         }
     }
+
+
+    var currentTime = new Date();
+
+    //mbox in which new message will be pushed
+    var $mboxContainer = Chat.getMboxContainer(msgFor)
+    var $newMsgContainer = $("<div>", {"data-behaviour": "msg", "data-from-username": payload.from, "data-timestamp": currentTime.getTime(), class: "msg-container"});
+    // console.log("[data-username="+payload.from+"]")
+    // 
+    // message sender name from dom using username
+    var fromName = Chat.getUserFullName(payload.from)
+    // prepare the message content to display
+    var msg = payload.msg;
+    var $timestampContainer = $("<span>", {class: "grey-out small"}).html("&nbsp;"+currentTime.toLocaleString());
+    var $from = $("<span>", {class: 'bold'}).append(fromName);
+
+    var $username = $("<div>").append($from).append($timestampContainer)
+    $newMsgContainer.append($username)
+    
+    $newMsgContainer.append($("<div>", {class: "msg"}).html(msg));
+
+
     console.log("Message received for chatgroup: "+msgFor);
 
     // append in the desigred chat group
     // 
-    Chat.pushMsgToMboxContainer(msgFor, $msgContainer)
+    Chat.pushMsgToMboxContainer(msgFor, $mboxContainer, $newMsgContainer)
    
     
   },
@@ -130,6 +137,7 @@ var Chat = {
   setUserInactive: function(username){
     console.log(username + " offline")
     Chat.getUser(username).addClass("offline").removeClass("online");
+    Chat.displayUserExited(username);
   },
 
   setInactiveUserStatus: function(payload){
@@ -142,6 +150,18 @@ var Chat = {
     });
     
     offline_users.addClass("offline").removeClass("online")
+  },
+
+  displayUserExited: function(username){
+    var name = Chat.getUserFullName(username);
+    var $msg = $("<div>");
+    var currentTime = new Date().toLocaleString();
+    var msg = name + " left " 
+    var $timestampContainer = $("<span>", {class: "grey-out small"}).text(currentTime);
+    $msg.append(msg)
+    $msg.append($timestampContainer);
+    // console.log(chatLobby)
+    Chat.getLobbyMbox.append($msg);
   },
 
 
