@@ -84,19 +84,19 @@ var Chat = {
   },
 
   displayMessage: function(payload){
-
+    var msgFor;
     if(payload.type == 'group'){
         // its a group message
-        var msgFor = payload.to;
+        msgFor = payload.to;
       } 
       else{
         // its an individual chat
         if (window.current_username == payload.from){
           // message sent by me
-          var msgFor = payload.to;
+          msgFor = payload.to;
         }else{
           // message received by me
-          var msgFor = payload.from;
+          msgFor = payload.from;
         }
     }
 
@@ -104,7 +104,7 @@ var Chat = {
     var currentTime = new Date();
 
     //mbox in which new message will be pushed
-    var $mboxContainer = Chat.getMboxContainer(msgFor)
+    var $mboxContainer = Chat.getMboxContainer(msgFor);
     var $newMsgContainer = $("<div>", {"data-behaviour": "msg", "data-from-username": payload.from, "data-timestamp": currentTime.getTime(), class: "msg-container"});
     // console.log("[data-username="+payload.from+"]")
     // 
@@ -123,7 +123,7 @@ var Chat = {
 
     console.log("Message received for chatgroup: "+msgFor);
 
-    // append in the desigred chat group
+    // append in the desired chat group
     // 
     Chat.pushMsgToMboxContainer(msgFor, $mboxContainer, $newMsgContainer)
    
