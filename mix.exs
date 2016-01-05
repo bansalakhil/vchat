@@ -19,7 +19,7 @@ defmodule Vchat.Mixfile do
   def application do
     [mod: {Vchat, []},
      applications: [:phoenix, :phoenix_html, :cowboy, :logger,
-                    :phoenix_ecto, :mariaex, :mailgun, :comeonin]]
+                    :phoenix_ecto, :mariaex, :mailgun, :comeonin, :connection]]
   end
 
   # Specifies which paths to compile per environment.
