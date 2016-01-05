@@ -19,7 +19,7 @@ var Chat = {
   pushMsgToMboxContainer: function(username, container, msg){
     // var container = Chat.getMboxContainer(username)
     container.find("[data-behaviour=mbox]").append(msg)
-    // msg[0].scrollIntoView();
+    msg[0].scrollIntoView();
 
     Chat.displayNotification(username);
   },
