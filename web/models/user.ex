@@ -5,6 +5,7 @@ defmodule Vchat.User do
   import Comeonin.Bcrypt, only: [hashpwsalt: 1]
 
   # before_insert :generate_activation_token
+  alias Vchat.User
 
   schema "users" do
     field :name, :string
@@ -54,6 +55,11 @@ defmodule Vchat.User do
     |> cast(params, @required_fields, @optional_fields)
     |> common_validations
   end  
+
+  def active(query \\ User) do
+    from u in query,
+    where: is_nil(u.activation_token) and not is_nil(u.activated_at) 
+  end
 
   def activated?(user) do
     is_nil(user.activation_token) && !is_nil(user.activated_at)

@@ -37,7 +37,7 @@ defmodule Vchat.UserController do
       # |> put_change(:activated_at, Ecto.DateTime.utc)    
 # raise changeset
     case Repo.update(changeset) do
-      {:ok, user} ->
+      {:ok, _user} ->
         conn
         |> put_flash(:info, "Your account activated successfully.")
         |> redirect(to: chat_path(conn, :index))
