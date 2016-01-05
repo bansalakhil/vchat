@@ -17,7 +17,7 @@ defmodule Vchat.UserController do
 
   def create(conn, %{"user" => user_params}) do
     changeset = User.changeset_for_signup(%User{}, user_params)
-
+    changeset = User.generate_activation_token(changeset)
     case Repo.insert(changeset) do
       {:ok, user} ->
         Vchat.UserMailer.send_account_verification_email(conn, user)

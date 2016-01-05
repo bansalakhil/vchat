@@ -4,7 +4,7 @@ defmodule Vchat.User do
   # use Comeonin for password encryption 
   import Comeonin.Bcrypt, only: [hashpwsalt: 1]
 
-  before_insert :generate_activation_token
+  # before_insert :generate_activation_token
 
   schema "users" do
     field :name, :string
@@ -61,7 +61,7 @@ defmodule Vchat.User do
 
   def record_last_activity(model) do
     model
-        |> cast(%{}, [])
+        |> cast(%{}, [], [])
         |> put_change(:last_activity_at, Ecto.DateTime.utc)
         |> force_change(:online, true)
   end
@@ -71,6 +71,13 @@ defmodule Vchat.User do
         |> cast(%{}, [])
         |> put_change(:last_activity_at, Ecto.DateTime.utc)
         |> force_change(:online, false)
+  end
+
+
+  def generate_activation_token(changeset) do
+    length = 32
+    random_string = :crypto.strong_rand_bytes(length) |> Base.url_encode64 |> binary_part(0, length)
+    changeset = put_change(changeset, :activation_token, random_string)
   end
 
   defp common_validations(changeset) do
@@ -95,11 +102,5 @@ defmodule Vchat.User do
     else
       changeset
     end
-  end
-
-  defp generate_activation_token(changeset) do
-    length = 32
-    random_string = :crypto.strong_rand_bytes(length) |> Base.url_encode64 |> binary_part(0, length)
-    changeset = put_change(changeset, :activation_token, random_string)
   end
 end

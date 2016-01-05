@@ -79,7 +79,7 @@
         <p class="alert alert-danger" role="alert"><%= flash_error %></p>
       <% end %>  
 
-      <%= @inner %>
+      <%= render @view_module, @view_template, assigns %>
 
     </div> <!-- /container -->
     <script src="<%= static_path(@conn, "/js/app.js") %>"></script>

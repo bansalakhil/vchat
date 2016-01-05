@@ -6,7 +6,7 @@ defmodule Vchat.Mixfile do
      version: "0.0.1",
      elixir: "~> 1.0",
      elixirc_paths: elixirc_paths(Mix.env),
-     compilers: [:phoenix] ++ Mix.compilers,
+     compilers: [:phoenix, :gettext] ++ Mix.compilers,
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      aliases: aliases,
@@ -18,7 +18,7 @@ defmodule Vchat.Mixfile do
   # Type `mix help compile.app` for more information.
   def application do
     [mod: {Vchat, []},
-     applications: [:phoenix, :phoenix_html, :cowboy, :logger,
+     applications: [:phoenix, :phoenix_html, :cowboy, :logger, :gettext,
                     :phoenix_ecto, :mariaex, :mailgun, :comeonin, :connection]]
   end
 
@@ -30,14 +30,15 @@ defmodule Vchat.Mixfile do
   #
   # Type `mix help deps` for examples and options.
   defp deps do
-    [{:phoenix, "~> 1.0.4"},
-     {:phoenix_ecto, "~> 1.1"},
+    [{:phoenix, "~> 1.1.1"},
+     {:phoenix_ecto, "~> 2.0"},
      {:mariaex, ">= 0.0.0"},
-     {:phoenix_html, "~> 2.1"},
+     {:phoenix_html, "~> 2.3"},
      {:phoenix_live_reload, "~> 1.0", only: :dev},
      {:cowboy, "~> 1.0"},
      {:comeonin, "~> 2.0"},
      {:mailgun, "~> 0.1.2"},
+     {:gettext, "~> 0.9"},
      {:exrm, "~> 1.0.0-rc7"}
    ]
   end
