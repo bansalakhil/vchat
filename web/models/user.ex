@@ -21,6 +21,10 @@ defmodule Vchat.User do
     field :password, :string, virtual: true
     field :password_confirmation, :string, virtual: true
 
+    has_many :sent_messages, Vchat.Message, foreign_key: :from_id
+    has_many :message_assignments, Vchat.MessageAssignment
+    has_many :received_messages, through: [:message_assignments, :message]
+
     timestamps
   end
 

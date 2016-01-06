@@ -19,7 +19,7 @@ defmodule Vchat.Mixfile do
   def application do
     [mod: {Vchat, []},
      applications: [:phoenix, :phoenix_html, :cowboy, :logger, :gettext,
-                    :phoenix_ecto, :mariaex, :mailgun, :comeonin, :connection]]
+                    :phoenix_ecto, :mariaex, :mailgun, :comeonin, :connection, :colorful]]
   end
 
   # Specifies which paths to compile per environment.
@@ -39,6 +39,7 @@ defmodule Vchat.Mixfile do
      {:comeonin, "~> 2.0"},
      {:mailgun, "~> 0.1.2"},
      {:gettext, "~> 0.9"},
+     {:colorful, "~> 0.6.0"},
      {:exrm, "~> 1.0.0-rc7"}
    ]
   end

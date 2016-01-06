@@ -1,8 +1,14 @@
+require IEx
 defmodule Vchat.ChatChannel do
   use Phoenix.Channel
   require Logger
   
+  import Ecto
   import Ecto.Query
+
+  alias Vchat.Message
+  alias Vchat.User
+  alias Vchat.MessageAssignment
   
   intercept ["chat:new_msg"]
   
@@ -30,7 +36,23 @@ defmodule Vchat.ChatChannel do
 
   def handle_in("chat:new_msg", %{"msg" => msg, "type" => type, "to" => to}, socket) do
     record_last_activity(socket)
-    broadcast! socket, "chat:new_msg", %{msg: msg, from: socket.assigns[:current_user].username, type: type, to: to}
+    from_user = socket.assigns[:current_user]
+
+    "Message Received:==>  Type: #{type}, From: #{from_user.username}, To: #{to}, Message: #{msg}"
+      |> Colorful.string(["green", "bright"])
+      |> Logger.debug
+
+    message_changeset = build_assoc(from_user, :sent_messages, body: msg)
+    case Vchat.Repo.insert(message_changeset) do
+      {:ok, message} ->
+        to_user = Vchat.Repo.get_by(Vchat.User, username: to)
+        message_assignments_changeset = build_assoc(message, :message_assignments,  receiver_id: to_user.id)
+        Vchat.Repo.insert(message_assignments_changeset)
+    # IEx.pry
+        broadcast! socket, "chat:new_msg", %{msg: msg, from: from_user.username, type: type, to: to}
+      {:error, message_changeset} ->
+        nil
+    end
     {:noreply, socket}
   end  
 
@@ -41,8 +63,6 @@ defmodule Vchat.ChatChannel do
     record_last_activity(socket)
     {:noreply, socket}
   end
-
-
 
   def handle_out("chat:new_msg", payload, socket) do
     if (payload.type == "group") || (socket.assigns[:current_user].username == payload.to) || (socket.assigns[:current_user].username == payload.from) do
