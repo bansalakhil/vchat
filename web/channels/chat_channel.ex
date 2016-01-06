@@ -45,10 +45,12 @@ defmodule Vchat.ChatChannel do
     message_changeset = build_assoc(from_user, :sent_messages, body: msg)
     case Vchat.Repo.insert(message_changeset) do
       {:ok, message} ->
-        to_user = Vchat.Repo.get_by(Vchat.User, username: to)
-        message_assignments_changeset = build_assoc(message, :message_assignments,  receiver_id: to_user.id)
-        Vchat.Repo.insert(message_assignments_changeset)
     # IEx.pry
+        if type != "group" do
+          to_user = Vchat.Repo.get_by(Vchat.User, username: to)
+          message_assignments_changeset = build_assoc(message, :message_assignments,  receiver_id: to_user.id)
+          Vchat.Repo.insert(message_assignments_changeset)
+        end
         broadcast! socket, "chat:new_msg", %{msg: msg, from: from_user.username, type: type, to: to}
       {:error, message_changeset} ->
         nil
