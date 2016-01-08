@@ -4,7 +4,8 @@ defmodule Vchat.Message do
   alias Vchat.User
 
   schema "messages" do
-    # field :from_id, :integer
+    field :msg_type, :string
+    field :group_name, :string
     field :body, :string
     field :info, :string
 

@@ -16,12 +16,15 @@ var Chat = {
     return Chat.getAllMboxContainer.filter("[data-mbox="+name+"]")
   },
 
-  pushMsgToMboxContainer: function(username, container, msg){
+  pushMsgToMboxContainer: function(username, container, msg, payload){
+    // console.log(msg)
     // var container = Chat.getMboxContainer(username)
     container.find("[data-behaviour=mbox]").append(msg)
     msg[0].scrollIntoView();
 
-    Chat.displayNotification(username);
+    if(!payload.seen) {
+      Chat.displayNotification(username);
+    }
   },
 
   displayNotification: function(username){
@@ -84,16 +87,16 @@ var Chat = {
   },
 
   displayMessage: function(payload){
-    var msgFor;
-    if(payload.type == 'group'){
+    var msgFor ;
+    if(payload.msg_type == 'group'){
         // its a group message
-        msgFor = payload.to;
+        msgFor = payload.group_name;
       } 
       else{
         // its an individual chat
         if (window.current_username == payload.from){
           // message sent by me
-          msgFor = payload.to;
+          msgFor = payload.group_name;
         }else{
           // message received by me
           msgFor = payload.from;
@@ -101,18 +104,19 @@ var Chat = {
     }
 
 
-    var currentTime = new Date();
+    // var currentTime = new Date();
 
     //mbox in which new message will be pushed
     var $mboxContainer = Chat.getMboxContainer(msgFor);
-    var $newMsgContainer = $("<div>", {"data-behaviour": "msg", "data-from-username": payload.from, "data-timestamp": currentTime.getTime(), class: "msg-container"});
+    var $newMsgContainer = $("<div>", {"data-behaviour": "msg", "data-mid": payload.mid, "data-from-username": payload.from, "data-timestamp": payload.time, class: "msg-container"});
     // console.log("[data-username="+payload.from+"]")
     // 
     // message sender name from dom using username
     var fromName = Chat.getUserFullName(payload.from)
     // prepare the message content to display
     var msg = payload.msg;
-    var $timestampContainer = $("<span>", {class: "grey-out small"}).html("&nbsp;"+currentTime.toLocaleString());
+    // var $timestampContainer = $("<span>", {class: "grey-out small"}).html("&nbsp;"+currentTime.toLocaleString());
+    var $timestampContainer = $("<span>", {class: "grey-out small"}).html("&nbsp;"+ payload.time);
     var $from = $("<span>", {class: 'bold'}).append(fromName);
 
     var $username = $("<div>").append($from).append($timestampContainer)
@@ -125,7 +129,7 @@ var Chat = {
 
     // append in the desired chat group
     // 
-    Chat.pushMsgToMboxContainer(msgFor, $mboxContainer, $newMsgContainer)
+    Chat.pushMsgToMboxContainer(msgFor, $mboxContainer, $newMsgContainer, payload)
    
     
   },

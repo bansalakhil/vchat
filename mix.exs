@@ -40,6 +40,8 @@ defmodule Vchat.Mixfile do
      {:mailgun, "~> 0.1.2"},
      {:gettext, "~> 0.9"},
      {:colorful, "~> 0.6.0"},
+     { :ex_doc, github: "elixir-lang/ex_doc" },
+     {:earmark, ">= 0.0.0"},
      {:exrm, "~> 1.0.0-rc7"}
    ]
   end

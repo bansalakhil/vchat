@@ -8,8 +8,9 @@ defmodule Vchat.ChatController do
   # plug :scrub_params, "user" when action in [:create, :update]
 
   def index(conn, _params) do
+    current_user = conn.assigns[:current_user]
+    # received_messages = current_user |> Repo.preload(:received_messages)
     # IEx.pry
-    # current_user = conn.assigns[:current_user]
     # users = Repo.all(from u in User, where: u.id != ^current_user.id)
     users = User
       |> User.active
