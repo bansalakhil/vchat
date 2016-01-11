@@ -3,7 +3,7 @@ defmodule Vchat.Mixfile do
 
   def project do
     [app: :vchat,
-     version: "0.0.1",
+     version: "0.0.2",
      elixir: "~> 1.0",
      elixirc_paths: elixirc_paths(Mix.env),
      compilers: [:phoenix, :gettext] ++ Mix.compilers,
