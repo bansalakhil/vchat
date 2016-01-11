@@ -42,16 +42,9 @@ main(Args) ->
                 _ ->
                     halt(1)
             end;
-        ["rpcterms", Module, Function] ->
-            case rpc:call(TargetNode, list_to_atom(Module), list_to_atom(Function), [], 60000) of
-                {badrpc, Reason} ->
-                    io:format("RPC to ~p failed: ~p\n", [TargetNode, Reason]),
-                    halt(1);
-                Other ->
-                    io:format("~p\n", [Other])
-            end;
-        ["rpcterms", Module, Function, ArgsAsString] ->
-            case rpc:call(TargetNode, list_to_atom(Module), list_to_atom(Function), consult(ArgsAsString), 60000) of
+        ["rpcterms", Module, Function | ArgsAsString] ->
+            case rpc:call(TargetNode, list_to_atom(Module), list_to_atom(Function),
+                          consult(lists:flatten(ArgsAsString)), 60000) of
                 {badrpc, Reason} ->
                     io:format("RPC to ~p failed: ~p\n", [TargetNode, Reason]),
                     halt(1);
@@ -123,17 +116,9 @@ append_node_suffix(Name, Suffix) ->
 %% Given a string or binary, parse it into a list of terms, ala file:consult/0
 %%
 consult(Str) when is_list(Str) ->
-    [Result] = consult([], Str, []),
-    case is_list(Result) of
-        true  -> Result;
-        false -> [Result]
-    end;
+    consult([], Str, []);
 consult(Bin) when is_binary(Bin)->
-    [Result] = consult([], binary_to_list(Bin), []),
-    case is_list(Result) of
-        true  -> Result;
-        false -> [Result]
-    end.
+    consult([], binary_to_list(Bin), []).
 
 consult(Cont, Str, Acc) ->
     case erl_scan:tokens(Cont, Str, 0) of
