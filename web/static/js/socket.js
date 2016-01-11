@@ -58,7 +58,7 @@ if(window.userToken){
 // Now that you are connected, you can join channels with a topic:
 let channel = socket.channel("chat:*", {})
 let chatLobby = Chat.getLobbyMbox;
-
+Chat.channel = channel;
 
 channel.join()
   .receive("ok", resp => { console.log("Joined successfully", resp);  channel.push("chat:old_messages", {msg:"..."}) })
@@ -88,13 +88,13 @@ channel.on("user:entered_in_lobby", payload => {
 channel.on("chat:old_messages", payload => {
 
   $.each(payload.received_messages, function(){
-    Chat.displayMessage(this);
+    Chat.displayMessage(this, {highlight: false});
   });
 
 })
 
 channel.on("chat:new_msg", payload => {
-  Chat.displayMessage(payload);
+  Chat.displayMessage(payload, {highlight: true});
 })
 
 channel.on("chat:user_status", payload => {
@@ -121,6 +121,25 @@ $msgBox.keydown(function(e){
     }
 });
 
+
+
+$(function() {
+  Chat.getUsers.on('click', function(){
+    // console.log(this)
+    // 
+    var $this = $(this);
+    var group_name = $this.attr("data-group-name");
+    var messages = Chat.getMboxContainer(group_name).find("[data-behaviour=msg]").filter("[data-seen=false]");
+    Chat.markSeen(messages);
+    // console.log(messages)
+    if(messages.length > 0 ){
+      messages[messages.length-1].scrollIntoView();
+    }
+    messages.effect("highlight", 3000, {queue: false});
+    
+    
+  })
+});    
 
 
 export default socket

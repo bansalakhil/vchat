@@ -7,6 +7,7 @@
 
 var Chat = {
 
+  channel: null,
   getUsers:            $("div[data-behaviour=chat-users] li[data-behaviour=chat-user]"),
   getLobbyMbox:        $("[data-behaviour=chat-mbox] [data-mbox=chat-lobby] [data-behaviour=mbox]"),
   getAllMboxContainer: $("div[data-behaviour=chat-mbox] div[data-behaviour=mbox-container]"),
@@ -16,25 +17,33 @@ var Chat = {
     return Chat.getAllMboxContainer.filter("[data-mbox="+name+"]")
   },
 
-  pushMsgToMboxContainer: function(username, container, msg, payload){
+  pushMsgToMboxContainer: function(username, container, msg, payload, options){
     // console.log(msg)
     // var container = Chat.getMboxContainer(username)
     container.find("[data-behaviour=mbox]").append(msg)
+  
     msg[0].scrollIntoView();
-
-    if(!payload.seen) {
-      Chat.displayNotification(username);
+  
+    if(options["highlight"]){
+      msg.effect("highlight", 3000);
     }
+  
+    if(!payload.seen) {
+      Chat.displayNotification(username, payload);
+    }
+
+    if(window.selected_chatgroup.attr("data-username") == username && !payload.seen){
+      Chat.markSeen(msg)
+    }    
   },
 
-  displayNotification: function(username){
+  displayNotification: function(username, payload){
     // display notification if not in focused
     if(window.selected_chatgroup.attr("data-username") != username){
       var notificationBox = Chat.getNotificationBoxFor(username)
       var count = Number(notificationBox.text());
       notificationBox.text(++count);
     }
-
   },
 
   getUserFullName: function(username){
@@ -80,13 +89,12 @@ var Chat = {
         Chat.getAllMboxContainer.hide()
         Chat.getMboxContainer(username).show()        
         Chat.resetNotificationFor(username);
-
         window.selected_chatgroup = $this;
       })
     });    
   },
 
-  displayMessage: function(payload){
+  displayMessage: function(payload, options){
     var msgFor ;
     if(payload.msg_type == 'group'){
         // its a group message
@@ -108,7 +116,7 @@ var Chat = {
 
     //mbox in which new message will be pushed
     var $mboxContainer = Chat.getMboxContainer(msgFor);
-    var $newMsgContainer = $("<div>", {"data-behaviour": "msg", "data-mid": payload.mid, "data-from-username": payload.from, "data-timestamp": payload.time, class: "msg-container"});
+    var $newMsgContainer = $("<div>", {"data-behaviour": "msg", "data-mid": payload.mid, "data-seen": payload.seen, "data-from-username": payload.from, "data-timestamp": payload.time, class: "msg-container"});
     // console.log("[data-username="+payload.from+"]")
     // 
     // message sender name from dom using username
@@ -129,7 +137,7 @@ var Chat = {
 
     // append in the desired chat group
     // 
-    Chat.pushMsgToMboxContainer(msgFor, $mboxContainer, $newMsgContainer, payload)
+    Chat.pushMsgToMboxContainer(msgFor, $mboxContainer, $newMsgContainer, payload, options)
    
     
   },
@@ -166,6 +174,18 @@ var Chat = {
     $msg.append($timestampContainer);
     // console.log(chatLobby)
     Chat.getLobbyMbox.append($msg);
+  },
+
+  markSeen: function(messages){
+    // alert(messages)
+    var message_ids = messages.map(function(i, el){
+      return el.getAttribute('data-mid')
+    });
+
+    if(message_ids.length > 0){
+      Chat.channel.push("chat:mark_seen", {message_ids: message_ids.toArray()});
+      messages.attr("data-seen", true)
+    }
   },
 
 

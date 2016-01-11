@@ -16,6 +16,7 @@ exports.config = {
       order: {
         before: [
           "web/static/js/vendor/jquery.js",
+          "web/static/js/vendor/jquery-ui-min.js",
           "web/static/js/vendor/bootstrap.js"
         ]
       }
@@ -25,6 +26,7 @@ exports.config = {
       order: {
         before: [
           "web/static/css/bootstrap.css",
+          "web/static/css/jquery-ui-min.css",
           "web/static/css/app.css",
         ]
       }      

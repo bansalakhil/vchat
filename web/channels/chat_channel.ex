@@ -36,6 +36,12 @@ defmodule Vchat.ChatChannel do
   end
 
 
+  def handle_in("chat:mark_seen", %{"message_ids" => message_ids}, socket) do
+    current_user = socket.assigns[:current_user]
+    mark_messages_seen(current_user, message_ids)
+    {:noreply, socket}
+  end 
+
   def handle_in("chat:old_messages", %{"msg" => msg}, socket) do
     current_user = socket.assigns[:current_user]
     received_messages = get_old_messages(socket)
@@ -129,6 +135,15 @@ defmodule Vchat.ChatChannel do
     Vchat.Repo.insert(message_assignments_changeset);
   end
 
+  defp mark_messages_seen(user, m_ids) do
+    # IEx.pry
+    MessageAssignment 
+      |> update([ma], set: [seen: true]) 
+      |> join(:inner, [ma], m in assoc(ma, :message)) 
+      |> where([ma, m], ma.message_id in ^m_ids) 
+      |> where([ma, m], ma.receiver_id == ^user.id) 
+      |>Vchat.Repo.update_all([])
+  end
 
 
 end
