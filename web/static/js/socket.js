@@ -138,6 +138,10 @@ channel.on("chat:user_offline", payload => {
 
 })
 
+channel.on("chat:link_info", payload => {
+  Chat.addLinkInfo(payload);
+})
+
 
 
 var $msgBox = Chat.getMsgBox;

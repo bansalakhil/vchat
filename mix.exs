@@ -19,7 +19,7 @@ defmodule Vchat.Mixfile do
   def application do
     [mod: {Vchat, []},
      applications: [:phoenix, :phoenix_html, :cowboy, :logger, :gettext,
-                    :phoenix_ecto, :mariaex, :mailgun, :comeonin, :connection, :colorful]]
+                    :phoenix_ecto, :mariaex, :mailgun, :comeonin, :connection, :colorful, :httpoison ]]
   end
 
   # Specifies which paths to compile per environment.
@@ -42,11 +42,13 @@ defmodule Vchat.Mixfile do
      {:colorful, "~> 0.6.0"},
      { :ex_doc, github: "elixir-lang/ex_doc" },
      {:earmark, ">= 0.0.0"},
+     {:httpoison, "~> 0.8.0"},
+     {:floki, "~> 0.7.1"},
      {:exrm, "~> 1.0.0-rc7"}
    ]
   end
 
-  # Aliases are shortcut or tasks specific to the current project.
+  # Aliases are shortcut or tasks specific to the current project. 
   # For example, to create, migrate and run the seeds file at once:
   #
   #     $ mix ecto.setup

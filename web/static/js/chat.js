@@ -144,7 +144,7 @@ var Chat = {
 
     $newMsgContainer.append($("<div>", {
       class: "msg"
-    }).html(msg));
+    }).html(Chat.textToLinks(msg)));
 
 
     console.log("Message received for chatgroup: " + msgFor);
@@ -206,7 +206,47 @@ var Chat = {
     }
   },
 
+  addLinkInfo: function (payload) {
+    var msg = Chat.getAllMboxContainer.find("div[data-behaviour=msg]div[data-mid=" + payload.mid + "]")
+    var info_node = $("<div>", {
+      "data-behaviour": "link_info",
+      "class": "link_info"
+    })
 
+    var url = $("<a>", {
+      href: payload.url
+    }).text(payload.url);
+
+    var url_node = $("<div>", {
+      "data-behaviour": "link_info_url",
+      "class": "link_url"
+    }).append(url)
+
+    var title = $("<a>", {
+      href: payload.url
+    }).text(payload.title);
+
+    var title_node = $("<div>", {
+      "data-behaviour": "link_info_title",
+      "class": "link_title"
+    }).append(title)
+
+    var description_node = $("<div>", {
+      "data-behaviour": "link_info_description",
+      "class": "link_description"
+    }).html(payload.desc)
+
+    info_node.append(title_node).append(url_node).append(description_node)
+    msg.append(info_node);
+
+    info_node[0].scrollIntoView();
+  },
+
+  textToLinks: function (text) {
+
+    var re = /(https?:\/\/(([-\w\.]+)+(:\d+)?(\/([\w/_\.]*(\?\S+)?)?)?))/g;
+    return text.replace(re, "<a href=\"$1\" target = '_blank' title=\"\">$1</a>");
+  }
 
 };
 

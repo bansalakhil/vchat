@@ -9,8 +9,11 @@ defmodule Vchat.ChatChannel do
   # alias Vchat.Message
   alias Vchat.User
   alias Vchat.MessageAssignment
+  alias Vchat.Message
+
+  @url_pattern  ~r/(http|https\:\/\/)[a-zA-Z0-9\.\/\?\:@\-_=#]+\.[a-zA-Z0-9\.\/\?\:@\-_=#]*/
   
-  intercept ["chat:new_msg", "chat:old_messages"]
+  intercept ["chat:new_msg", "chat:old_messages", "chat:link_info"]
   
   def join("chat:*", message, socket) do
     :timer.send_interval(60000, :ping)
@@ -18,10 +21,12 @@ defmodule Vchat.ChatChannel do
     {:ok, socket}
   end
     
+  def join("chat:" <> _private_room_id, _params, _socket) do
+    {:error, %{reason: "unauthorized"}}
+  end    
  
-  def handle_info({:after_join, msg}, socket) do
+  def handle_info({:after_join, _msg}, socket) do
     record_last_activity(socket)
-    # IEx.pry
     broadcast! socket, "user:entered_in_lobby", %{ inactive_users: get_inactive_users, user: socket.assigns[:current_user].username}
     {:noreply, socket}
   end
@@ -31,8 +36,9 @@ defmodule Vchat.ChatChannel do
     {:noreply, socket}
   end
 
-  def join("chat:" <> _private_room_id, _params, _socket) do
-    {:error, %{reason: "unauthorized"}}
+  def handle_info({:link_info, message}, socket) do
+    parse_links(socket, message)
+    {:noreply, socket}
   end
 
 
@@ -42,7 +48,12 @@ defmodule Vchat.ChatChannel do
     {:noreply, socket}
   end 
 
-  def handle_in("chat:old_messages", %{"msg" => msg}, socket) do
+  def handle_in("chat:record_last_activity", %{"msg" => _msg}, socket) do
+    record_last_activity(socket)
+    {:noreply, socket}
+  end  
+
+  def handle_in("chat:old_messages", %{"msg" => _msg}, socket) do
     current_user = socket.assigns[:current_user]
     received_messages = get_old_messages(socket)
     broadcast! socket, "chat:old_messages", %{ received_messages: received_messages, user: current_user.username}
@@ -53,17 +64,14 @@ defmodule Vchat.ChatChannel do
     record_last_activity(socket)
     from_user = socket.assigns[:current_user]
 
-
-
-
-
     "Message Received:==>  Type: #{type}, From: #{from_user.username}, To: #{to}, Message: #{msg}"
       |> Colorful.string(["green", "bright"])
       |> Logger.debug
 
     message_changeset = build_assoc(from_user, :sent_messages, body: msg, msg_type: type, group_name: to)
     # IEx.pry
-    case Vchat.Repo.insert(message_changeset) do
+    # 
+    message = case Vchat.Repo.insert(message_changeset) do
       {:ok, message} ->
         if type != "group" do
           to_user = Vchat.Repo.get_by(User, username: to)
@@ -78,19 +86,15 @@ defmodule Vchat.ChatChannel do
         end
 
         broadcast! socket, "chat:new_msg", %{mid: message.id, from: from_user.username, to: to, msg: msg, seen: false, msg_type: message.msg_type, group_name: message.group_name, time: "#{Ecto.DateTime.to_string(message.inserted_at)}"}
-      {:error, message_changeset} ->
+        message
+
+      {:error, _message_changeset} ->
         nil
     end
+    :timer.send_after(2000, {:link_info, message})
+    # parse_links(socket, message)
     {:noreply, socket}
   end  
-
-  def handle_in("chat:record_last_activity", %{"msg" => msg}, socket) do
-    # broadcast! socket, "chat:new_msg", %{msg: msg, from: socket.assigns[:current_user].username, type: type, to: to}
-    # Vchat.UserController.record_last_activity(socket.assigns[:current_user])
-
-    record_last_activity(socket)
-    {:noreply, socket}
-  end
 
   def handle_out("chat:new_msg", payload, socket) do
     if (payload.msg_type == "group") || (socket.assigns[:current_user].username == payload.to) || (socket.assigns[:current_user].username == payload.from) do
@@ -104,6 +108,17 @@ defmodule Vchat.ChatChannel do
       push socket, "chat:old_messages", payload
     end
     {:noreply, socket}
+  end  
+
+  def handle_out("chat:link_info", payload, socket) do
+    message = Vchat.Repo.get(Message, payload.mid)
+    receiver_ids = assoc(message, :message_assignments) |> select([ma], ma.receiver_id) |> Vchat.Repo.all
+    Enum.any?(receiver_ids, fn(x) -> x == socket.assigns[:current_user].id end)
+    if ( Enum.any?(receiver_ids, fn(x) -> x == socket.assigns[:current_user].id end) )  do
+      push socket, "chat:link_info", payload
+    end
+
+    {:noreply, socket}  
   end  
 
   def terminate(reason, socket) do
@@ -149,5 +164,50 @@ defmodule Vchat.ChatChannel do
       |>Vchat.Repo.update_all([])
   end
 
+  defp parse_links(socket, message) do
+    message.body
+      |> Colorful.string(["green", "bright"])
+      |> Logger.debug
+
+    urls = Regex.scan(@url_pattern, message.body)
+    urls = Enum.map(urls, fn([x | _ ] ) -> x end)
+
+    Enum.each(urls, fn(url) -> 
+      url 
+      |> Colorful.string(["green", "bright"])
+      |> Logger.debug      
+
+      # Make a request to url and extract title and description 
+      case HTTPoison.get(url, [], follow_redirect: true, max_redirect: 3) do
+        {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
+          title_and_desc = body 
+          |> Floki.find("head title, head meta[name=description]")
+
+          title = title_and_desc |> Floki.text()
+
+          description =  case title_and_desc |> Floki.attribute("content") do 
+            [desc] -> desc
+            _ -> nil
+          end
+
+          broadcast_link_info(socket, message, title, description, url)
+
+        {:ok, %HTTPoison.Response{status_code: 404}} ->
+          Logger.debug "#{url} Not found :("
+        {:error, %HTTPoison.Error{reason: reason}} ->
+          Logger.debug "#{url} #{reason} :("
+        {:ok, _} ->
+          Logger.debug "#{url}. may be redirect"
+      end
+
+
+    end
+    )
+
+  end
+
+  defp broadcast_link_info(socket, message, title, description, url) do
+    broadcast! socket, "chat:link_info", %{mid: message.id, title: title, desc: description, url: url}
+  end
 
 end

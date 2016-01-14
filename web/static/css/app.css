@@ -43,3 +43,26 @@ div.msg{
 .offline a{
   color: grey;
 }
+
+
+
+.link_info{
+    color: grey;
+    margin: 15px 15px 30px 15px;
+    padding-left: 15px;
+    border-left: 5px solid grey;
+
+}
+
+.link_title{
+  font-size: 115%;
+  font-weight: bold;
+}
+
+.link_url{
+  font-style: italic;
+}
+
+.link_description{
+  margin-top: 5px;
+}
