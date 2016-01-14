@@ -6,7 +6,7 @@ defmodule Vchat.ChatChannel do
   import Ecto
   import Ecto.Query
 
-  alias Vchat.Message
+  # alias Vchat.Message
   alias Vchat.User
   alias Vchat.MessageAssignment
   
@@ -53,6 +53,10 @@ defmodule Vchat.ChatChannel do
     record_last_activity(socket)
     from_user = socket.assigns[:current_user]
 
+
+
+
+
     "Message Received:==>  Type: #{type}, From: #{from_user.username}, To: #{to}, Message: #{msg}"
       |> Colorful.string(["green", "bright"])
       |> Logger.debug
@@ -62,12 +66,12 @@ defmodule Vchat.ChatChannel do
     case Vchat.Repo.insert(message_changeset) do
       {:ok, message} ->
         if type != "group" do
-          to_user = Vchat.Repo.get_by(Vchat.User, username: to)
+          to_user = Vchat.Repo.get_by(User, username: to)
           # IEx.pry
           insert_message_assignment(message, to_user)
           insert_message_assignment(message, from_user)
         else 
-          users = Vchat.Repo.all(Vchat.User)  
+          users = Vchat.Repo.all(User)  
           Enum.each(users, fn(to_user) ->
           insert_message_assignment(message, to_user)
           end)
@@ -110,15 +114,15 @@ defmodule Vchat.ChatChannel do
   end
 
   defp record_last_activity(socket) do
-    Vchat.Repo.update(Vchat.User.record_last_activity(socket.assigns[:current_user]))
+    Vchat.Repo.update(User.record_last_activity(socket.assigns[:current_user]))
   end
 
   defp mark_offline(socket) do
-    Vchat.Repo.update(Vchat.User.mark_offline(socket.assigns[:current_user]))
+    Vchat.Repo.update(User.mark_offline(socket.assigns[:current_user]))
   end
 
   defp get_inactive_users do
-    users = Vchat.Repo.all(from u in Vchat.User, where: u.online == false or u.last_activity_at < datetime_add(^Ecto.DateTime.utc, -60, "second") or is_nil(u.last_activity_at)  )
+    users = Vchat.Repo.all(from u in User, where: u.online == false or u.last_activity_at < datetime_add(^Ecto.DateTime.utc, -60, "second") or is_nil(u.last_activity_at)  )
     Enum.map(users, &(&1.username))
   end
 

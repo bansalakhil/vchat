@@ -24,7 +24,7 @@ defmodule Vchat.SessionController do
 
   def delete(conn, _params) do
     conn
-      |> delete_session(:current_user)
+      |> configure_session(drop: true)
       |> put_flash(:info, "Signed out successfully!")
       |> redirect(to: session_path(conn, :new))
   end

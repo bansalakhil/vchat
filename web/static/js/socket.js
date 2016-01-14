@@ -3,9 +3,21 @@
 
 // To use Phoenix channels, the first step is to import Socket
 // and connect at the socket path in "lib/my_app/endpoint.ex":
-import {Socket} from "deps/phoenix/web/static/js/phoenix"
-import {Chat} from "web/static/js/chat";
-let socket = new Socket("/socket", {params: {token: window.userToken}})
+import {
+  Socket
+}
+from "deps/phoenix/web/static/js/phoenix"
+
+import {
+  Chat
+}
+from "web/static/js/chat";
+
+let socket = new Socket("/socket", {
+  params: {
+    token: window.userToken
+  }
+})
 
 // When you connect, you'll often need to authenticate the client.
 // For example, imagine you have an authentication plug, `MyAuth`,
@@ -51,7 +63,7 @@ let socket = new Socket("/socket", {params: {token: window.userToken}})
 // Finally, pass the token on connect as below. Or remove it
 // from connect if you don't care about authentication.
 
-if(window.userToken){
+if (window.userToken) {
   socket.connect()
 }
 
@@ -61,8 +73,15 @@ let chatLobby = Chat.getLobbyMbox;
 Chat.channel = channel;
 
 channel.join()
-  .receive("ok", resp => { console.log("Joined successfully", resp);  channel.push("chat:old_messages", {msg:"..."}) })
-  .receive("error", resp => { console.log("Unable to join", resp) })
+  .receive("ok", resp => {
+    console.log("Joined successfully", resp);
+    channel.push("chat:old_messages", {
+      msg: "..."
+    })
+  })
+  .receive("error", resp => {
+    console.log("Unable to join", resp)
+  })
 
 
 
@@ -72,8 +91,10 @@ channel.on("user:entered_in_lobby", payload => {
   var name = Chat.getUserFullName(payload.user);
   var $joinedMsg = $("<div>");
   var currentTime = new Date().toLocaleString();
-  var msg = name + " joined " 
-  var $timestampContainer = $("<span>", {class: "grey-out small"}).text(currentTime);
+  var msg = name + " joined "
+  var $timestampContainer = $("<span>", {
+    class: "grey-out small"
+  }).text(currentTime);
   $joinedMsg.append(msg)
   $joinedMsg.append($timestampContainer);
   // console.log(chatLobby)
@@ -87,44 +108,58 @@ channel.on("user:entered_in_lobby", payload => {
 
 channel.on("chat:old_messages", payload => {
 
-  $.each(payload.received_messages, function(){
-    Chat.displayMessage(this, {highlight: false});
+  $.each(payload.received_messages, function () {
+    Chat.displayMessage(this, {
+      highlight: false
+    });
   });
 
 })
 
 channel.on("chat:new_msg", payload => {
-  Chat.displayMessage(payload, {highlight: true});
+  Chat.displayMessage(payload, {
+    highlight: true
+  });
 })
 
 channel.on("chat:user_status", payload => {
   Chat.setInactiveUserStatus(payload.inactive_users);
-  channel.push("chat:record_last_activity", {msg: "..."})
-  
+  channel.push("chat:record_last_activity", {
+    msg: "..."
+  })
+
 })
 
 channel.on("chat:user_offline", payload => {
   Chat.setUserInactive(payload.username);
-  channel.push("chat:record_last_activity", {msg: "..."})
-  
+  channel.push("chat:record_last_activity", {
+    msg: "..."
+  })
+
 })
 
 
 
 var $msgBox = Chat.getMsgBox;
-$msgBox.keydown(function(e){
-    if (e.keyCode == 13 && !e.shiftKey)
-    {
-        channel.push("chat:new_msg", {msg: $msgBox.val(), to: window.selected_chatgroup.attr("data-username"), type: window.selected_chatgroup.attr("data-chat-type")})
-        $msgBox.val("")
-        e.preventDefault();
+$msgBox.keydown(function (e) {
+  if (e.keyCode == 13 && !e.shiftKey) {
+    var msg = $msgBox.val().trim();
+    if (msg) {
+      channel.push("chat:new_msg", {
+        msg: msg,
+        to: window.selected_chatgroup.attr("data-username"),
+        type: window.selected_chatgroup.attr("data-chat-type")
+      })
+      $msgBox.val("")
     }
+    e.preventDefault();
+  }
 });
 
 
 
-$(function() {
-  Chat.getUsers.on('click', function(){
+$(function () {
+  Chat.getUsers.on('click', function () {
     // console.log(this)
     // 
     var $this = $(this);
@@ -132,14 +167,17 @@ $(function() {
     var messages = Chat.getMboxContainer(group_name).find("[data-behaviour=msg]").filter("[data-seen=false]");
     Chat.markSeen(messages);
     // console.log(messages)
-    if(messages.length > 0 ){
-      messages[messages.length-1].scrollIntoView();
+    if (messages.length > 0) {
+      messages[messages.length - 1].scrollIntoView();
     }
-    messages.effect("highlight", 3000, {queue: false});
-    
-    
+    messages.effect("highlight", 3000, {
+      queue: false
+    });
+
+
   })
-});    
+});
 
 
-export default socket
+export
+default socket

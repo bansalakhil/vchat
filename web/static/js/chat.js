@@ -8,67 +8,69 @@
 var Chat = {
 
   channel: null,
-  getUsers:            $("div[data-behaviour=chat-users] li[data-behaviour=chat-user]"),
-  getLobbyMbox:        $("[data-behaviour=chat-mbox] [data-mbox=chat-lobby] [data-behaviour=mbox]"),
+  getUsers: $("div[data-behaviour=chat-users] li[data-behaviour=chat-user]"),
+  getLobbyMbox: $("[data-behaviour=chat-mbox] [data-mbox=chat-lobby] [data-behaviour=mbox]"),
   getAllMboxContainer: $("div[data-behaviour=chat-mbox] div[data-behaviour=mbox-container]"),
-  getMsgBox:           $("[data-behaviour=msg-form] textarea[data-behaviour=msg-input]"),
+  getMsgBox: $("[data-behaviour=msg-form] textarea[data-behaviour=msg-input]"),
 
-  getMboxContainer: function(name){ 
-    return Chat.getAllMboxContainer.filter("[data-mbox="+name+"]")
+  getMboxContainer: function (name) {
+    return Chat.getAllMboxContainer.filter("[data-mbox=" + name + "]")
   },
 
-  pushMsgToMboxContainer: function(username, container, msg, payload, options){
+  pushMsgToMboxContainer: function (username, container, msg, payload, options) {
     // console.log(msg)
     // var container = Chat.getMboxContainer(username)
     container.find("[data-behaviour=mbox]").append(msg)
-  
+
     msg[0].scrollIntoView();
-  
-    if(options["highlight"]){
-      msg.effect("highlight", 3000);
+
+    if (options["highlight"]) {
+      msg.effect("highlight", 3000, {
+        queue: false
+      });
     }
-  
-    if(!payload.seen) {
+
+    if (!payload.seen) {
       Chat.displayNotification(username, payload);
     }
 
-    if(window.selected_chatgroup.attr("data-username") == username && !payload.seen){
+    if (window.selected_chatgroup.attr("data-username") == username && !payload.seen) {
       Chat.markSeen(msg)
-    }    
+    }
   },
 
-  displayNotification: function(username, payload){
+  displayNotification: function (username, payload) {
     // display notification if not in focused
-    if(window.selected_chatgroup.attr("data-username") != username){
+    if (window.selected_chatgroup.attr("data-username") != username) {
       var notificationBox = Chat.getNotificationBoxFor(username)
       var count = Number(notificationBox.text());
       notificationBox.text(++count);
     }
   },
 
-  getUserFullName: function(username){
+  getUserFullName: function (username) {
     // console.log($("[data-behaviour=chat-users] li[data-username="+username+"]"))
-    return $("[data-behaviour=chat-users] li[data-username="+username+"]").attr("data-name")
-  },
-  
-  getUser: function(username){
-    return Chat.getUsers.filter("[data-username="+username+"]")
+    return $("[data-behaviour=chat-users] li[data-username=" + username + "]").attr("data-name")
   },
 
-  getNotificationBoxFor: function(username){
+  getUser: function (username) {
+    return Chat.getUsers.filter("[data-username=" + username + "]")
+  },
+
+  getNotificationBoxFor: function (username) {
     // console.log(Chat.getUser(username).find("[data-behaviour=notification]"))
     return Chat.getUser(username).find("[data-behaviour=notification]")
   },
 
-  resetNotificationFor: function(username){
+  resetNotificationFor: function (username) {
     var notificationBox = Chat.getUser(username).find("[data-behaviour=notification]");
     // console.log(notificationBox)
     notificationBox.text("");
   },
 
 
-  run: function() {
-    $(function() {
+  run: function () {
+    $(function () {
 
       // hide all mbox and show lobby mbox  
       Chat.getAllMboxContainer.hide()
@@ -77,38 +79,37 @@ var Chat = {
 
 
       // on click display related mbox  
-      Chat.getUsers.on('click', function(){
+      Chat.getUsers.on('click', function () {
         // console.log(this)
         // 
         var $this = $(this);
         var username = $this.attr("data-username");
-        
+
         // console.log('Hiding all mbox-containers')
         // console.log('displayiing '+username+'-container');
-        
+
         Chat.getAllMboxContainer.hide()
-        Chat.getMboxContainer(username).show()        
+        Chat.getMboxContainer(username).show()
         Chat.resetNotificationFor(username);
         window.selected_chatgroup = $this;
       })
-    });    
+    });
   },
 
-  displayMessage: function(payload, options){
-    var msgFor ;
-    if(payload.msg_type == 'group'){
-        // its a group message
+  displayMessage: function (payload, options) {
+    var msgFor;
+    if (payload.msg_type == 'group') {
+      // its a group message
+      msgFor = payload.group_name;
+    } else {
+      // its an individual chat
+      if (window.current_username == payload.from) {
+        // message sent by me
         msgFor = payload.group_name;
-      } 
-      else{
-        // its an individual chat
-        if (window.current_username == payload.from){
-          // message sent by me
-          msgFor = payload.group_name;
-        }else{
-          // message received by me
-          msgFor = payload.from;
-        }
+      } else {
+        // message received by me
+        msgFor = payload.from;
+      }
     }
 
 
@@ -116,74 +117,91 @@ var Chat = {
 
     //mbox in which new message will be pushed
     var $mboxContainer = Chat.getMboxContainer(msgFor);
-    var $newMsgContainer = $("<div>", {"data-behaviour": "msg", "data-mid": payload.mid, "data-seen": payload.seen, "data-from-username": payload.from, "data-timestamp": payload.time, class: "msg-container"});
+    var $newMsgContainer = $("<div>", {
+      "data-behaviour": "msg",
+      "data-mid": payload.mid,
+      "data-seen": payload.seen,
+      "data-from-username": payload.from,
+      "data-timestamp": payload.time,
+      class: "msg-container"
+    });
     // console.log("[data-username="+payload.from+"]")
     // 
     // message sender name from dom using username
     var fromName = Chat.getUserFullName(payload.from)
-    // prepare the message content to display
+      // prepare the message content to display
     var msg = payload.msg;
     // var $timestampContainer = $("<span>", {class: "grey-out small"}).html("&nbsp;"+currentTime.toLocaleString());
-    var $timestampContainer = $("<span>", {class: "grey-out small"}).html("&nbsp;"+ payload.time);
-    var $from = $("<span>", {class: 'bold'}).append(fromName);
+    var $timestampContainer = $("<span>", {
+      class: "grey-out small"
+    }).html("&nbsp;" + payload.time);
+    var $from = $("<span>", {
+      class: 'bold'
+    }).append(fromName);
 
     var $username = $("<div>").append($from).append($timestampContainer)
     $newMsgContainer.append($username)
-    
-    $newMsgContainer.append($("<div>", {class: "msg"}).html(msg));
+
+    $newMsgContainer.append($("<div>", {
+      class: "msg"
+    }).html(msg));
 
 
-    console.log("Message received for chatgroup: "+msgFor);
+    console.log("Message received for chatgroup: " + msgFor);
 
     // append in the desired chat group
     // 
     Chat.pushMsgToMboxContainer(msgFor, $mboxContainer, $newMsgContainer, payload, options)
-   
-    
+
+
   },
 
-  setUserActive: function(username){
+  setUserActive: function (username) {
     Chat.getUser(username).addClass("online").removeClass("offline");
   },
 
-  setUserInactive: function(username){
+  setUserInactive: function (username) {
     console.log(username + " offline")
     Chat.getUser(username).addClass("offline").removeClass("online");
     Chat.displayUserExited(username);
   },
 
-  setInactiveUserStatus: function(payload){
+  setInactiveUserStatus: function (payload) {
     // console.log(payload)
     var users = Chat.getUsers
     users.addClass("online").removeClass("offline");
-    
-    var offline_users  = users.filter(function(){
+
+    var offline_users = users.filter(function () {
       return payload.includes($(this).attr("data-username"))
     });
-    
+
     offline_users.addClass("offline").removeClass("online")
   },
 
-  displayUserExited: function(username){
+  displayUserExited: function (username) {
     var name = Chat.getUserFullName(username);
     var $msg = $("<div>");
     var currentTime = new Date().toLocaleString();
-    var msg = name + " left " 
-    var $timestampContainer = $("<span>", {class: "grey-out small"}).text(currentTime);
+    var msg = name + " left "
+    var $timestampContainer = $("<span>", {
+      class: "grey-out small"
+    }).text(currentTime);
     $msg.append(msg)
     $msg.append($timestampContainer);
     // console.log(chatLobby)
     Chat.getLobbyMbox.append($msg);
   },
 
-  markSeen: function(messages){
+  markSeen: function (messages) {
     // alert(messages)
-    var message_ids = messages.map(function(i, el){
+    var message_ids = messages.map(function (i, el) {
       return el.getAttribute('data-mid')
     });
 
-    if(message_ids.length > 0){
-      Chat.channel.push("chat:mark_seen", {message_ids: message_ids.toArray()});
+    if (message_ids.length > 0) {
+      Chat.channel.push("chat:mark_seen", {
+        message_ids: message_ids.toArray()
+      });
       messages.attr("data-seen", true)
     }
   },
