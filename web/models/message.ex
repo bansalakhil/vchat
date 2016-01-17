@@ -13,6 +13,7 @@ defmodule Vchat.Message do
 
     belongs_to :sender, User, foreign_key: :from_id
     has_many :message_assignments, Vchat.MessageAssignment
+    has_many :links, Vchat.Link
   end
 
   @required_fields ~w(from_id body )

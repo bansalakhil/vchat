@@ -153,7 +153,15 @@ var Chat = {
     // 
     Chat.pushMsgToMboxContainer(msgFor, $mboxContainer, $newMsgContainer, payload, options)
 
-
+    // console.log(payload.links)
+    $(payload.links).each(function (i, link) {
+      Chat.addLinkInfo({
+        mid: payload.mid,
+        url: link.url,
+        title: link.title,
+        description: link.description
+      })
+    });
   },
 
   setUserActive: function (username) {
@@ -234,7 +242,7 @@ var Chat = {
     var description_node = $("<div>", {
       "data-behaviour": "link_info_description",
       "class": "link_description"
-    }).html(payload.desc)
+    }).html(payload.description)
 
     info_node.append(title_node).append(url_node).append(description_node)
     msg.append(info_node);

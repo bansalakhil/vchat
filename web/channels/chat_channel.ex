@@ -113,8 +113,8 @@ defmodule Vchat.ChatChannel do
   def handle_out("chat:link_info", payload, socket) do
     message = Vchat.Repo.get(Message, payload.mid)
     receiver_ids = assoc(message, :message_assignments) |> select([ma], ma.receiver_id) |> Vchat.Repo.all
-    Enum.any?(receiver_ids, fn(x) -> x == socket.assigns[:current_user].id end)
-    if ( Enum.any?(receiver_ids, fn(x) -> x == socket.assigns[:current_user].id end) )  do
+    # Enum.any?(receiver_ids, fn(x) -> x == socket.assigns[:current_user].id end)
+    if ( Enum.any?(receiver_ids, fn(x) -> x == socket.assigns[:current_user].id end)  )  do
       push socket, "chat:link_info", payload
     end
 
@@ -127,6 +127,17 @@ defmodule Vchat.ChatChannel do
     Logger.debug"> leave #{inspect reason}"
     :ok
   end
+
+
+
+
+
+
+
+
+
+
+
 
   defp record_last_activity(socket) do
     Vchat.Repo.update(User.record_last_activity(socket.assigns[:current_user]))
@@ -144,9 +155,13 @@ defmodule Vchat.ChatChannel do
   defp get_old_messages(socket) do 
     # socket.assigns[:current_user]
     user = socket.assigns[:current_user] 
-    message_assignments = MessageAssignment |> where(receiver_id: ^user.id) |> limit(100) |> preload(message: :sender) |> Vchat.Repo.all
-    # IEx.pry
-    Enum.map(message_assignments, fn(ma) -> %{mid: ma.message.id, from: ma.message.sender.username, to: user.username, msg: ma.message.body, seen: ma.seen, msg_type: ma.message.msg_type, group_name: ma.message.group_name, time: "#{Ecto.DateTime.to_string(ma.message.inserted_at)}"}  end)
+    message_assignments = MessageAssignment |> where(receiver_id: ^user.id) |> limit(100) |> preload(message: [:sender, :links]) |> Vchat.Repo.all
+    Enum.map(message_assignments, fn(ma) -> 
+      links = Enum.map(ma.message.links, fn(link) -> 
+        %{url: link.url, title: link.title, description: link.description}
+      end)
+      %{mid: ma.message.id, from: ma.message.sender.username, to: user.username, msg: ma.message.body, links: links, seen: ma.seen, msg_type: ma.message.msg_type, group_name: ma.message.group_name, time: "#{Ecto.DateTime.to_string(ma.message.inserted_at)}"}  
+    end)
   end
 
   defp insert_message_assignment(message, user) do
@@ -172,8 +187,20 @@ defmodule Vchat.ChatChannel do
     urls = Regex.scan(@url_pattern, message.body)
     urls = Enum.map(urls, fn([x | _ ] ) -> x end)
 
-    Enum.each(urls, fn(url) -> 
-      url 
+    Enum.each(urls, fn(url) ->  
+      get_link_async = Task.async(fn -> get_link_info(socket, url, message)     end)
+      Task.await(get_link_async, 20000)
+    end    
+    )
+
+  end
+
+  defp broadcast_link_info(socket, message, title, description, url) do
+    broadcast! socket, "chat:link_info", %{mid: message.id, title: title, description: description, url: url}
+  end
+
+  defp get_link_info(socket, url, message) do
+    url 
       |> Colorful.string(["green", "bright"])
       |> Logger.debug      
 
@@ -190,6 +217,9 @@ defmodule Vchat.ChatChannel do
             _ -> nil
           end
 
+          link_changeset = build_assoc(message, :links, url: url, title: title, description: description)
+          Vchat.Repo.insert(link_changeset)
+          
           broadcast_link_info(socket, message, title, description, url)
 
         {:ok, %HTTPoison.Response{status_code: 404}} ->
@@ -199,15 +229,6 @@ defmodule Vchat.ChatChannel do
         {:ok, _} ->
           Logger.debug "#{url}. may be redirect"
       end
-
-
-    end
-    )
-
-  end
-
-  defp broadcast_link_info(socket, message, title, description, url) do
-    broadcast! socket, "chat:link_info", %{mid: message.id, title: title, desc: description, url: url}
   end
 
 end
