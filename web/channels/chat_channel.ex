@@ -187,11 +187,13 @@ defmodule Vchat.ChatChannel do
     urls = Regex.scan(@url_pattern, message.body)
     urls = Enum.map(urls, fn([x | _ ] ) -> x end)
 
-    Enum.each(urls, fn(url) ->  
+
+    pids = Enum.map(urls, fn(url) ->  
       get_link_async = Task.async(fn -> get_link_info(socket, url, message)     end)
-      Task.await(get_link_async, 20000)
+      # Task.await(get_link_async, 20000)
     end    
     )
+   Enum.map(pids, fn(pid) -> Task.await(pid, 20000) end)
 
   end
 
@@ -200,6 +202,7 @@ defmodule Vchat.ChatChannel do
   end
 
   defp get_link_info(socket, url, message) do
+    Logger.debug "@@@@@@@@@@@@@@@   Start: #{url}         @@@@@@@@@@@@@@@@@@@@@@@@@"
     url 
       |> Colorful.string(["green", "bright"])
       |> Logger.debug      
@@ -229,6 +232,8 @@ defmodule Vchat.ChatChannel do
         {:ok, _} ->
           Logger.debug "#{url}. may be redirect"
       end
+    Logger.debug "@@@@@@@@@@@@@@@   End: #{url}         @@@@@@@@@@@@@@@@@@@@@@@@@"
+
   end
 
 end
