@@ -14,9 +14,28 @@
   }
 }
 
-div.chat-box{
-  height: 500px;
-  overflow-y: scroll;
+
+
+
+@media (min-width: 768px) {
+  div.chat-box{
+    height: 300px;
+    overflow-y: scroll;
+  }
+}
+
+@media (min-width: 992px) {
+  div.chat-box{
+    height: 300px;
+    overflow-y: scroll;
+  }
+}
+
+@media (min-width: 1200px) {
+  div.chat-box{
+    height: 500px;
+    overflow-y: scroll;
+  }
 }
 
 .grey-out{
