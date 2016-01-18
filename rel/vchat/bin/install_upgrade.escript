@@ -7,8 +7,8 @@
 -define(INFO(Fmt,Args), io:format(Fmt,Args)).
 
 %% Unpack or upgrade to a new tar.gz release
-main(["unpack", RelName, NodeName, Cookie, VersionArg]) ->
-    TargetNode = start_distribution(NodeName, Cookie),
+main(["unpack", RelName, NameType, NodeName, Cookie, VersionArg]) ->
+    TargetNode = start_distribution(NameType, NodeName, Cookie),
     WhichReleases = which_releases(TargetNode),
     Version = parse_version(VersionArg),
     case proplists:get_value(Version, WhichReleases) of
@@ -35,8 +35,8 @@ main(["unpack", RelName, NodeName, Cookie, VersionArg]) ->
         permanent ->
             ?INFO("Release ~s is already installed, and set permanent.~n",[Version])
     end;
-main(["install", RelName, NodeName, Cookie, VersionArg]) ->
-    TargetNode = start_distribution(NodeName, Cookie),
+main(["install", RelName, NameType, NodeName, Cookie, VersionArg]) ->
+    TargetNode = start_distribution(NameType, NodeName, Cookie),
     WhichReleases = which_releases(TargetNode),
     Version = parse_version(VersionArg),
     case proplists:get_value(Version, WhichReleases) of
@@ -112,9 +112,12 @@ print_existing_versions(TargetNode) ->
             ||  {V,S} <- which_releases(TargetNode) ]),
     ?INFO("Installed versions:~n~s", [VerList]).
 
-start_distribution(NodeName, Cookie) ->
+start_distribution(NameType, NodeName, Cookie) ->
     MyNode = make_script_node(NodeName),
-    {ok, _Pid} = net_kernel:start([MyNode, longnames]),
+    {ok, _Pid} = case NameType of
+      "-sname" -> net_kernel:start([MyNode, shortnames]);
+      "-name"  -> net_kernel:start([MyNode, longnames])
+    end,
     erlang:set_cookie(node(), list_to_atom(Cookie)),
     TargetNode = list_to_atom(NodeName),
     case {net_kernel:connect_node(TargetNode),

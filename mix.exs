@@ -18,8 +18,8 @@ defmodule Vchat.Mixfile do
   # Type `mix help compile.app` for more information.
   def application do
     [mod: {Vchat, []},
-     applications: [:phoenix, :phoenix_html, :cowboy, :logger, :gettext,
-                    :phoenix_ecto, :mariaex, :mailgun, :comeonin, :connection, :colorful, :httpoison ]]
+     applications: [:phoenix, :phoenix_html, :cowboy, :xmerl, :floki, :logger, :gettext,
+                    :phoenix_ecto, :mariaex, :mailgun, :comeonin, :connection, :colorful,  :httpoison ]]
   end
 
   # Specifies which paths to compile per environment.
